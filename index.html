@@ -1,0 +1,1794 @@
+<!doctype html><html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0E7A5C"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Shipa Pharm">
+<style>*{box-sizing:border-box}html,body{margin:0}</style></head><body>
+<title>Shipa Pharm бошқаруви</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Unbounded:wght@500;700&display=swap">
+<style>
+/* Layout: mobile-first app shell — sticky header with branch switch, one view at a time, fixed bottom tab bar; widens to a 2-column grid on desktop */
+:root{
+  --bg:#F2F5F3; --surface:#FFFFFF; --line:#DCE4E0; --ink:#13241F; --muted:#5E716B;
+  --accent:#0E7A5C; --accent-soft:#DDF0E8; --branch2:#B9772A; --branch2-soft:#F6E9D6;
+  --good:#1E8A4F; --warn:#B9772A; --bad:#C2413A; --bad-soft:#F8E1DF; --info:#2F6FB0; --info-soft:#E0EBF6;
+  --font-display:"Unbounded","Golos Text",system-ui,sans-serif;
+  --font-body:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --r:12px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1714; --surface:#16221E; --line:#26362F; --ink:#E4EEEA; --muted:#93A8A0;
+  --accent:#3FC497; --accent-soft:#163A2F; --branch2:#E0A35A; --branch2-soft:#3A2B18;
+  --good:#4CC583; --warn:#E0A35A; --bad:#EF7A72; --bad-soft:#3D1F1D; --info:#7DB0E6; --info-soft:#1B2C3F; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1714; --surface:#16221E; --line:#26362F; --ink:#E4EEEA; --muted:#93A8A0;
+  --accent:#3FC497; --accent-soft:#163A2F; --branch2:#E0A35A; --branch2-soft:#3A2B18;
+  --good:#4CC583; --warn:#E0A35A; --bad:#EF7A72; --bad-soft:#3D1F1D; --info:#7DB0E6; --info-soft:#1B2C3F; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.45;font-variant-numeric:tabular-nums}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding-inline:16px;padding-block:12px 10px}
+.hrow{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1100px;margin:0 auto}
+.brand{display:flex;flex-direction:column;min-width:0}
+.brand b{font-family:var(--font-display);font-weight:700;font-size:17px;letter-spacing:.01em}
+.brand b span{color:var(--accent)}
+.brand small{color:var(--muted);font-size:12px}
+.seg{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px;max-width:1100px;margin:10px auto 0;overflow-x:auto}
+.seg button{flex:1;border:0;background:none;border-radius:999px;padding:6px 10px;font-size:13px;white-space:nowrap;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);font-weight:600}
+.add{border:0;background:var(--accent);color:#fff;border-radius:999px;padding:9px 14px;font-weight:600;font-size:14px;white-space:nowrap}
+
+main{max-width:1100px;margin:0 auto;padding-inline:16px;padding-block:16px 110px;display:flex;flex-direction:column;gap:16px}
+h2{font-family:var(--font-display);font-weight:500;font-size:15px;margin:0;text-wrap:balance}
+.lbl{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.notice{background:var(--info-soft);color:var(--ink);border-radius:var(--r);padding:10px 12px;font-size:13px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.notice button{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:5px 10px;font-size:13px}
+
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.kpi .v{font-size:20px;font-weight:700;overflow-wrap:break-word}
+.kpi .s{font-size:12px;color:var(--muted)}
+.kpi.main{grid-column:1/-1;background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.kpi.main .lbl,.kpi.main .s{color:var(--bg);opacity:.75}
+.kpi.main .v{font-family:var(--font-display);font-size:26px;font-weight:700}
+@media (min-width:760px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.kpi.main{grid-column:auto}}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.ph{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.legend{display:flex;gap:12px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.chart svg{width:100%;height:auto;display:block}
+.grid2{display:grid;gap:16px}
+@media (min-width:760px){.grid2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+
+.list{display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:10px 0;border-top:1px solid var(--line);align-items:center}
+.row:first-child{border-top:0}
+.row .t{font-weight:600;overflow-wrap:break-word}
+.row .m{font-size:13px;color:var(--muted);overflow-wrap:break-word}
+.row .amt{font-weight:700;text-align:right;white-space:nowrap}
+.amt.in{color:var(--good)}.amt.out{color:var(--bad)}
+.acts{display:flex;gap:6px;justify-content:flex-end;align-items:center;flex-wrap:wrap}
+.x{border:0;background:none;color:var(--muted);font-size:12px;padding:4px 6px;border-radius:6px}
+.x:hover{background:var(--bad-soft);color:var(--bad)}
+.x.ok{color:var(--bad)}
+.chip{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+.chip.b2{background:var(--branch2-soft);color:var(--branch2)}
+.chip.sample{background:var(--info-soft);color:var(--info)}
+select.status{border:1px solid var(--line);border-radius:999px;padding:3px 8px;font-size:12px;font-weight:600;background:var(--surface)}
+select.status[data-s="Янги"]{background:var(--info-soft);color:var(--info);border-color:transparent}
+select.status[data-s="Тайёрланмоқда"],select.status[data-s="Етказилмоқда"]{background:var(--branch2-soft);color:var(--warn);border-color:transparent}
+select.status[data-s="Бажарилди"]{background:var(--accent-soft);color:var(--good);border-color:transparent}
+select.status[data-s="Бекор"]{background:var(--bad-soft);color:var(--bad);border-color:transparent}
+.empty{color:var(--muted);font-size:13.5px;padding:14px 0;text-align:center}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+.tools input,.tools select{flex:1;min-width:0;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 12px}
+.sum{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.sum b{color:var(--ink)}
+
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center}
+nav.tabs div{display:flex;gap:2px;width:100%;max-width:640px}
+nav.tabs button{flex:1;border:0;background:none;border-radius:10px;padding:6px 2px;font-size:11px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
+nav.tabs svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav.tabs button[aria-current="page"]{color:var(--accent);font-weight:600;background:var(--accent-soft)}
+
+.sheet-bg{position:fixed;inset:0;background:rgba(10,20,16,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;max-height:92%;overflow-y:auto}
+@media (min-width:640px){.sheet-bg{align-items:center}.sheet{border-radius:18px}}
+.sheet .kinds{display:flex;gap:6px;flex-wrap:wrap}
+.sheet .kinds button{border:1px solid var(--line);background:none;border-radius:999px;padding:6px 12px;font-size:13px}
+.sheet .kinds button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.f{display:flex;flex-direction:column;gap:4px}
+.f label{font-size:12.5px;color:var(--muted);font-weight:500}
+.f input,.f select,.f textarea{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:10px 12px;width:100%}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sheet .btns{display:flex;gap:8px;justify-content:flex-end}
+.sheet .btns button{border-radius:10px;padding:10px 16px;font-weight:600;border:1px solid var(--line);background:none}
+.sheet .btns .add{border:0;background:var(--accent);color:#fff}
+.err{color:var(--bad);font-size:13px}
+
+.tbl{overflow-x:auto;margin-inline:-14px;padding-inline:14px}
+.tbl table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:440px}
+.tbl th{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:right;padding:6px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl th:first-child,.tbl td:first-child{text-align:left}
+.tbl td{padding:9px 6px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+.tbl tbody tr{cursor:pointer}
+.tbl tbody tr:hover,.tbl tbody tr.sel{background:var(--accent-soft)}
+.tbl tfoot td{font-weight:700;border-bottom:0;border-top:2px solid var(--ink)}
+.pos{color:var(--good)}.neg{color:var(--bad)}
+.ledger{display:grid;grid-template-columns:1fr auto;gap:0;font-size:14px}
+.ledger>div{padding:9px 0;border-top:1px solid var(--line)}
+.ledger>div:nth-child(-n+2){border-top:0}
+.ledger .r{text-align:right;font-weight:700}
+.ledger .tot{font-weight:700;font-size:16px;border-top:2px solid var(--ink)}
+.ledger .hint{display:block;font-size:12px;color:var(--muted);font-weight:400}
+.bars{display:flex;flex-direction:column;gap:8px}
+.bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;font-size:13px}
+.bar .track{grid-column:1/-1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.bar .track i{display:block;height:100%;background:var(--bad);border-radius:3px}
+.chip.late{background:var(--bad-soft);color:var(--bad)}
+.chip.paid{background:var(--accent-soft);color:var(--good)}
+.pay{border:1px solid var(--accent);color:var(--accent);background:none;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600}
+.check{display:flex;gap:8px;align-items:center;font-size:13.5px}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.paylist{font-size:12px;color:var(--muted)}
+.scan{display:flex;flex-direction:column;gap:10px}
+.scan input{font-size:20px;padding:14px 16px;border:2px solid var(--accent);border-radius:12px;background:var(--bg);width:100%;letter-spacing:.04em}
+.hit{border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:6px}
+.hit.ok{background:var(--accent-soft)}
+.hit.no{background:var(--bad-soft)}
+.hit .nm{font-size:22px;font-weight:700;overflow-wrap:break-word;text-wrap:balance}
+.hit .pr{font-family:var(--font-display);font-size:34px;font-weight:700;color:var(--accent)}
+.hit .bc{font-size:13px;color:var(--muted)}
+.hit .acts{justify-content:flex-start}
+.btn2{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 14px;font-weight:600;font-size:13.5px}
+.btn2.pri{background:var(--accent);color:#fff;border-color:var(--accent)}
+.row.click{cursor:pointer}
+.sel{user-select:all}
+.dcard{display:flex;flex-direction:column;gap:8px;padding:14px 0;border-top:1px solid var(--line)}
+.list>.dcard:first-child{border-top:0}
+.dcard.late{border-left:4px solid var(--bad);padding-left:12px}
+.dtop{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.dname{font-weight:700;font-size:17px;overflow-wrap:break-word;min-width:0}
+.damt{font-weight:800;font-size:18px;white-space:nowrap}
+.ddates{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ddates>div{display:flex;flex-direction:column;gap:4px;background:var(--bg);border-radius:10px;padding:8px 10px;min-width:0}
+.dd{font-weight:700;font-size:15px}
+.dd.bad{color:var(--bad)}.dd.warn{color:var(--warn)}.dd.muted{color:var(--muted);font-weight:500}
+.fcard{display:flex;flex-direction:column;gap:8px;padding:14px 0;border-top:1px solid var(--line)}
+.list>.fcard:first-child{border-top:0}
+.ftop{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.fcard a.wa{align-self:flex-start;margin:0}
+.sugg{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.sg{display:flex;justify-content:space-between;align-items:center;gap:12px;border:0;border-top:1px solid var(--line);background:var(--surface);padding:12px 14px;text-align:left}
+.sg:first-child{border-top:0}
+.sg:active{background:var(--accent-soft)}
+.sgn{font-weight:600;min-width:0;overflow-wrap:break-word}
+.sgp{display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap}
+.sgp b{color:var(--good)}.sgp small{color:var(--muted);font-size:12px}
+.sgp.none{color:var(--muted);font-size:12.5px}
+.moreseg{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.moreseg::-webkit-scrollbar{display:none}
+.moreseg button{flex:0 0 auto;padding:7px 14px}
+.impbtns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.cam.ib{flex-direction:column;justify-content:center;padding:12px 6px;font-size:13.5px!important;gap:4px!important;min-height:72px}
+.cam.ib svg{width:26px;height:26px}
+#lockScr{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.lockbox .f{text-align:left}
+.lockbox{display:flex;flex-direction:column;gap:14px;width:100%;max-width:320px;text-align:center}
+.lockbox .brand b{font-family:var(--font-display);font-size:26px}.lockbox .brand span{color:var(--accent)}
+.pinin{font-size:28px;letter-spacing:.4em;text-align:center;padding:14px;border:2px solid var(--accent);border-radius:12px;background:var(--surface)}
+.kv.kv4{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (min-width:760px){.kv.kv4{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.kv small{color:var(--muted);font-size:12px}
+.kvb{display:flex;flex-direction:column;gap:3px;background:var(--bg);border:0;border-radius:10px;padding:8px 10px;text-align:left;min-width:0}
+.kvb.bad b{color:var(--bad)}
+.kvb:active{background:var(--accent-soft)}
+.mcard{display:flex;flex-direction:column;gap:10px;padding:16px 0;border-top:1px solid var(--line)}
+.list>.mcard:first-child{border-top:0}
+.dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:7px 14px;margin:0;font-size:14.5px}
+.dl dt{color:var(--muted);white-space:nowrap}
+.dl dd{margin:0;text-align:right;overflow-wrap:break-word;display:flex;flex-direction:column;align-items:flex-end;gap:3px;min-width:0}
+.dl dd .chip{white-space:normal;max-width:100%;text-align:right}
+.expl{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.nw{white-space:nowrap}
+.mrow{display:flex;flex-direction:column;gap:6px;padding:10px 0;border-top:1px solid var(--line)}
+.list>.mrow:first-child{border-top:0}
+.mrt{display:flex;justify-content:space-between;gap:10px}
+.mrt span{font-weight:700;white-space:nowrap}
+.dl dd small{color:var(--muted);font-size:12.5px}
+.dl dd .chip{margin-top:2px}
+@media (max-width:380px){.dl{grid-template-columns:1fr}.dl dd{text-align:left;align-items:flex-start;padding-bottom:4px;border-bottom:1px dashed var(--line)}.dl dd .chip{text-align:left}.expl{align-items:flex-start}}
+.fline{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:13.5px;background:var(--accent-soft);border-radius:8px;padding:6px 10px;margin-top:4px}
+.fline small{color:var(--muted)}
+.fc{display:flex;flex-direction:column;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px}
+.fcbig{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13px;color:var(--muted)}
+.fcbig b{font-family:var(--font-display);font-size:24px;color:var(--accent);white-space:nowrap}
+.fct{width:100%;border-collapse:collapse;font-size:13.5px}
+.fct td{padding:5px 4px;border-top:1px solid var(--line);white-space:nowrap}
+.fct td:first-child{white-space:normal;font-weight:600}
+.fct tr.best td{color:var(--good)}
+.warnt{color:var(--warn);font-weight:600}
+.pickme{display:flex;flex-direction:column;gap:8px}
+.pickme .btn2{display:flex;flex-direction:column;align-items:flex-start;padding:12px 14px;font-size:16px}
+.pickme small{color:var(--muted);font-weight:400;font-size:12.5px}
+.picks{display:flex;flex-wrap:wrap;gap:6px;margin-top:-2px}
+.pick{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 11px;font-size:13px}
+.kv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.kv>div{display:flex;flex-direction:column;gap:3px;background:var(--bg);border-radius:10px;padding:8px 10px;min-width:0}
+.kv b{font-size:14.5px;overflow-wrap:break-word}
+.hist{display:flex;flex-direction:column;gap:6px;background:var(--bg);border-radius:10px;padding:10px}
+.hrow{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13.5px;border-top:1px solid var(--line);padding-top:6px}
+.hrow small{color:var(--muted)}
+.row .t{font-size:15.5px}
+@media (max-width:640px){
+  .row{grid-template-columns:minmax(0,1fr);gap:8px}
+  .row>.acts{flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;flex-wrap:wrap;gap:8px 12px}
+  .row>.acts>.acts{justify-content:flex-start}
+  .row .amt{text-align:left;font-size:16px}
+  .row .x{padding:6px 10px;border:1px solid var(--line);border-radius:8px}
+}
+.menubtn{flex:1;display:flex!important;flex-direction:row!important;align-items:center;justify-content:flex-start;gap:10px!important;font-size:16px!important;padding:10px!important;color:var(--ink)!important;background:var(--accent-soft)!important;border-radius:12px!important}
+.menubtn .mlbl{font-weight:700;color:var(--accent)}
+.menubtn #curSec{font-weight:600}
+.menubtn #curSec::before{content:"· ";color:var(--muted)}
+.mpop{position:fixed;left:12px;bottom:calc(70px + env(safe-area-inset-bottom,0px));z-index:15;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:6px;display:flex;flex-direction:column;width:200px;max-height:62vh;overflow-y:auto}
+.mi{display:flex;align-items:center;gap:10px;border:0;background:none;border-radius:9px;padding:8px 10px;text-align:left;font-size:15px;font-weight:600;color:var(--ink)}
+.mi svg{width:20px;height:20px;stroke:var(--accent);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+.mi[aria-current="page"]{background:var(--accent-soft)}
+.mi:active{background:var(--accent-soft)}
+.dacts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+a.wa{display:inline-flex;align-items:center;gap:8px;margin-block:6px;padding:8px 14px;border-radius:999px;background:#1FA855;color:#fff;font-weight:700;font-size:14px;text-decoration:none;white-space:nowrap}
+a.wa svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linejoin:round}
+a.wa:active{opacity:.85}
+.scanrow{display:flex;gap:8px;align-items:stretch}
+.scanrow input{flex:1;min-width:0}
+.cam{border:0;background:var(--accent);color:#fff;border-radius:12px;padding:0 14px;display:flex;align-items:center;gap:6px;font-weight:600;font-size:14px;white-space:nowrap}
+.cam svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.cam[disabled]{opacity:.6}
+.cam.gal{background:var(--surface);color:var(--accent);border:1px solid var(--accent)}
+@media (max-width:480px){.cam{padding:0 10px;font-size:0;gap:0}.cam svg{width:24px;height:24px}}
+.cam{position:relative;overflow:hidden;cursor:pointer}
+.camfile{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0}
+.cam:focus-within{outline:2px solid var(--ink);outline-offset:2px}
+.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
+.pl-best td{background:var(--accent-soft);font-weight:700}
+.tbl.wrap td{white-space:normal}
+.mapgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.prev{font-size:12px}
+.prev td,.prev th{padding:4px 6px!important}
+.toggle[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+a.pay{text-decoration:none;display:inline-block}
+.rembar{display:flex;align-items:center;gap:8px;width:100%;margin:0 0 12px;padding:12px 14px;border:1px solid #E0A100;background:#FFF4D6;color:#5C4200;border-radius:14px;font-size:15px;text-align:left;cursor:pointer}
+.zq{display:flex;align-items:center;gap:6px;flex-shrink:0}.zq input{width:64px;padding:6px 8px;border:1px solid var(--line);border-radius:10px;font-size:15px;text-align:center;background:var(--surface);color:inherit}
+button.wa{border:0;cursor:pointer}
+.rembar.exp{border-color:#D9822B;background:#FFF0E0;color:#6B3A00}
+.rembar span{margin-left:auto;font-weight:700;white-space:nowrap}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .rembar{background:#3A2E0A;color:#FFE08A;border-color:#8A6A10}}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .rembar.exp{background:#3A240C;color:#FFC98A;border-color:#8A5A1A}}
+.cheap{color:var(--good);font-weight:700}
+.chip.rx{background:var(--bad-soft);color:var(--bad);letter-spacing:.04em}
+.shift{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.chip.warnc{background:var(--branch2-soft);color:var(--warn)}
+.qty{display:flex;align-items:center;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.qty button{border:0;background:none;width:32px;height:30px;font-size:17px;font-weight:600}
+.qty span{min-width:24px;text-align:center;font-weight:600}
+.total{display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid var(--ink);padding-top:10px}
+.total b{font-family:var(--font-display);font-size:28px}
+.add.big{width:100%;padding:14px;font-size:16px;border-radius:12px}
+.add[disabled]{opacity:.5}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:13.5px;z-index:30}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(16px);opacity:.6}}}
+</style>
+
+<header>
+  <div class="hrow">
+    <div class="brand"><b>Shipa <span>Pharm</span></b><small id="meTag" style="color:var(--accent);font-weight:600"></small><small id="today">Бошқарув панели</small></div>
+    <button class="add" id="addBtn">+ Қўшиш</button>
+  </div>
+  <div class="seg" id="branchSeg" role="group" aria-label="Филиал">
+    <button data-b="all" aria-pressed="true">Иккала филиал</button>
+    <button data-b="Қорабулоқ" aria-pressed="false">Қорабулоқ</button>
+    <button data-b="Қожақўрғон" aria-pressed="false">Қожақўрғон</button>
+  </div>
+</header>
+
+<main id="main"><div class="empty">Юкланмоқда…</div></main>
+
+<nav class="tabs"><div id="tabs"><button class="menubtn" data-menu aria-label="Менюни очиш"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="mlbl">Меню</span><span id="curSec">Умумий</span></button></div></nav>
+
+<div id="sheetHost"></div>
+
+<script>
+(function(){
+const BRANCHES=["Қорабулоқ","Қожақўрғон"];
+const STATUSES=["Янги","Тайёрланмоқда","Етказилмоқда","Бажарилди","Бекор"];
+const CHANNELS=["WhatsApp","Instagram","Telegram","Телефон","Дўконда"];
+const INCOME_CATS=["Нақд","Халқ банк","Kaspi","Kaspi Pay","Буюртма","Қарз қайтарилди","Бошқа"];
+const NONCASH=["Халқ банк","Kaspi","Kaspi Pay","Карта / Kaspi"];
+const PAY_NAMES={cash:"Нақд",halyk:"Халқ банк",kaspi:"Kaspi",kaspipay:"Kaspi Pay"};
+const EXPENSE_CATS=["Дори харид","Мижозга қайтарилди","Ойлик","Ижара","Коммунал","Етказиш","Реклама","Солиқ","Бошқа"];
+const COLS=["sales","debts","orders","customers","staff","meds","suppliers","supplies","shifts","pricelists","stocklog","settings"];
+const MORE=[];
+const SECTIONS=[["home","Умумий","бугунги касса, огоҳлантиришлар",'<path d="M4 13h4v7H4zM10 8h4v12h-4zM16 4h4v16h-4z"/>'],
+ ["sell","Сотув","дорини сканерлаб сотиш",'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/>'],
+ ["meds","Дорилар","бор дорилар, қолдиқ, муддат",'<path d="M4 5v14M7 5v14M10 5v14M14 5v14M16 5v14M20 5v14"/>'],
+ ["money","Касса","кунлик ва ойлик ҳисоб",'<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/>'],
+ ["debts","Қарз дафтари","қарздорлар ва тўловлар",'<path d="M5 3h11l3 3v15H5zM9 9h6M9 13h6M9 17h3"/>'],
+ ["prices","Нархлар","қайси фирмада арзон",'<path d="M3 12l9-9h9v9l-9 9z"/><circle cx="16" cy="8" r="1.5"/>'],
+ ["zakaz","Заказ","тугаган дорилар, энг арзон фирма",'<path d="M3 4h2l2.5 11h10.5l2-8H6.5"/><circle cx="9" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/>'],
+ ["suppliers","Фирмалар","фирмалар, уларга қарзимиз",'<path d="M3 21V9l9-6 9 6v12M9 21v-6h6v6"/>'],
+ ["report","Ҳисобот","кўп сотилган, туриб қолган",'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'],
+ ["orders","Буюртмалар","WhatsApp, Instagram буюртмалари",'<path d="M6 3h12l1 18H5zM9 7a3 3 0 0 0 6 0"/>'],
+ ["customers","Мижозлар","мижозлар рўйхати",'<circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6"/>'],
+ ["staff","Ходимлар","ходимлар ва ойликлар",'<rect x="4" y="3" width="16" height="18" rx="2"/><circle cx="12" cy="10" r="3"/>'],
+ ["lock","Логин ва парол","кимлар кира олади",'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'],
+ ["markup","Устама фоизи","сотиш нархи = келиш + %",'<path d="M19 5L5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/>'],
+ ["logout","Чиқиш","бошқа логин билан кириш",'<path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/>']];
+function openMenu(){
+  let h=document.getElementById("menuHost");
+  if(!h){h=document.createElement("div");h.id="menuHost";document.body.appendChild(h);}
+  if(h.innerHTML){h.innerHTML="";return;}
+  h.innerHTML=`<div class="mpop" role="menu">${SECTIONS.filter(x=>boss()||x[0]!=="prices").map(([v,l,d,ic])=>`<button class="mi" role="menuitem" data-v="${v}" ${view===v?'aria-current="page"':""}><svg viewBox="0 0 24 24">${ic}</svg><span>${l}</span></button>`).join("")}</div>`;
+}
+function closeMenu(){const h=document.getElementById("menuHost");if(h)h.innerHTML="";}
+let EXP_WARN=274;const DEFAULT_MIN=5;
+const expMonths=()=>{const d=(state.settings||[]).find(x=>x.id==="expwarn");return d&&+d.months>0?+d.months:9;};
+const state={settings:[],sales:[],debts:[],orders:[],customers:[],staff:[],meds:[],suppliers:[],supplies:[],shifts:[],pricelists:[],stocklog:[]};
+let editPrice=null, editRec=null, invMode=false, medFor="", discMode="sum", discVal="", pq="", imp=null, dl=null, xlsxP=null, importing=false;
+let db=null, loaded=false, view="home", lastMore="meds", branch="all", q="", confirmId=null;
+let monthSel=null, daySel=null, orderFilter="open", debtFilter="open", medFilter="all", payFor=null;
+let scanCode="", editMed=null, prefillCode="";
+let supOpen=null, closeBr="", repFrom="", repTo="", seller=(()=>{try{return localStorage.getItem("sp_seller")||""}catch(e){return""}})();
+let cart=[], payType="cash", saleBranch="", saleMsg=null, msq="", selling=false;
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const num=n=>Math.round(+n||0).toLocaleString("ru-RU").replace(/[  ,]/g," ");
+const money=n=>num(n)+" ₸";
+const signed=n=>(n>0?"+":n<0?"−":"")+num(Math.abs(n));
+const pad=n=>String(n).padStart(2,"0");
+const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const todayISO=()=>iso(new Date());
+monthSel=todayISO().slice(0,7);
+const MONTHS=["январ","феврал","март","апрел","май","июн","июл","август","сентябр","октябр","ноябр","декабр"];
+const WD=["Як","Ду","Се","Чо","Па","Жу","Ша"];
+const nice=s=>{if(!s)return"";const [y,m,d]=s.split("-");return +d+" "+MONTHS[+m-1]+(y!==todayISO().slice(0,4)?" "+y:"");};
+const monthName=m=>MONTHS[+m.slice(5)-1]+" "+m.slice(0,4);
+const bchip=b=>b?`<span class="chip${b===BRANCHES[1]?" b2":""}">${esc(b)}</span>`:"";
+const inBranch=r=>branch==="all"||r.branch===branch;
+const byDate=(a,b)=>(b.date||"").localeCompare(a.date||"")||((b.created||0)-(a.created||0));
+const sum=(arr,f="amount")=>arr.reduce((a,r)=>a+(+r[f]||0),0);
+const paid=d=>sum(d.payments||[]);
+const left=d=>Math.max(0,(+d.amount||0)-paid(d));
+const cleanCode=c=>String(c||"").replace(/\s+/g,"");
+const findMed=c=>state.meds.find(m=>m.barcode===cleanCode(c));
+const daysTo=e=>Math.round((new Date(e+"T12:00")-new Date(todayISO()+"T12:00"))/864e5);
+
+/* ---------- stock helpers ---------- */
+const batchesIn=(m,br=branch)=>(m.batches||[]).filter(b=>(+b.qty>0)&&(br==="all"||b.branch===br));
+const stockOf=(m,br=branch)=>sum(batchesIn(m,br),"qty");
+const minOf=m=>m.min===undefined||m.min===""?DEFAULT_MIN:+m.min;
+const nearestExp=(m,br=branch)=>batchesIn(m,br).map(b=>b.exp).filter(Boolean).sort()[0]||"";
+const isLow=m=>stockOf(m)<=minOf(m);
+function expChip(e){if(!e)return"";const d=daysTo(e);
+  const f=e.split("-").reverse().join(".");
+  if(d<0)return `<span class="chip late">муддати ўтган: ${f}</span>`;
+  if(d<=EXP_WARN)return `<span class="chip warnc">${f} · ${d>62?Math.round(d/30.44)+" ой":d+" кун"} қолди</span>`;
+  return `<span class="chip sample">${f} гача</span>`;}
+function consume(batches,br,qty){
+  const out=(batches||[]).map(b=>({...b}));
+  const mine=out.filter(b=>b.branch===br&&+b.qty>0).sort((a,b)=>(a.exp||"9999").localeCompare(b.exp||"9999"));
+  for(const b of mine){if(qty<=0)break;const t=Math.min(+b.qty,qty);b.qty=+b.qty-t;qty-=t;}
+  return out.filter(b=>+b.qty>0);
+}
+
+$("#today").textContent=(()=>{const d=new Date();return d.getDate()+" "+MONTHS[d.getMonth()]+" "+d.getFullYear();})();
+function toast(t){const el=document.createElement("div");el.className="toast";el.textContent=t;document.body.appendChild(el);setTimeout(()=>el.remove(),2400);}
+
+/* ---------- data ---------- */
+/* Расмий (ўз сервер) версия учун: Firebase лойиҳаси калитларини шу ерга ёзинг, масалан
+   const FIREBASE_CONFIG={apiKey:"...",authDomain:"...",projectId:"..."};
+   null бўлса, дастур Claude базаси билан ишлайди. Қолган код ўзгармайди. */
+const FIREBASE_CONFIG={apiKey:"AIzaSyCccNxd6SuqlhF53LmiLvUTkKtQCiRe-cM",authDomain:"shipa-pharm.firebaseapp.com",projectId:"shipa-pharm",storageBucket:"shipa-pharm.firebasestorage.app",messagingSenderId:"916127166286",appId:"1:916127166286:web:3e23d57b1267515441381f"};
+let FB=false;
+const SHARDS={sales:12,meds:4,stocklog:4,debts:2,supplies:2,orders:2,customers:2};
+function shardOf(col,id){const n=SHARDS[col]||1;if(n<2)return undefined;let h=0;for(const ch of String(id))h=(h*31+ch.charCodeAt(0))>>>0;return h%n;}
+function withSh(col,id,data){const k=FB?undefined:shardOf(col,id);return k===undefined?data:{...data,sh:k};}
+async function addRec(col,data){
+  data.created=Date.now();
+  if(db){try{const ref=db.collection(col).doc();await ref.set(withSh(col,ref.id,data));}catch(e){toast("Сақланмади, қайта уриниб кўринг");return false;}}
+  else{state[col].push({id:"l"+Math.random().toString(36).slice(2),...data});render();}
+  return true;
+}
+async function setDoc(col,id,data){
+  if(db){try{await db.collection(col).doc(id).set(withSh(col,id,data));return true;}catch(e){toast("Сақланмади");return false;}}
+  state[col]=state[col].filter(r=>r.id!==id);state[col].push({id,...data});render();return true;
+}
+async function delRec(col,id,quiet){
+  if(db){try{await db.collection(col).doc(id).delete();if(!quiet)toast("Ўчирилди");}catch(e){toast("Ўчирилмади");}}
+  else{state[col]=state[col].filter(r=>r.id!==id);render();if(!quiet)toast("Ўчирилди");}
+}
+async function markRem(id){const d=state.debts.find(x=>x.id===id);if(!d)return;const t=todayISO();
+  await updRec("debts",id,{reminded:[...(d.reminded||[]).filter(x=>x!==t).slice(-9),t]});d.reminded=[...(d.reminded||[]).filter(x=>x!==t),t];
+  const f=document.getElementById("fields");if(f&&sheetKind==="remind")f.innerHTML=formFields("remind");render();}
+async function updRec(col,id,patch){
+  if(db){try{await db.collection(col).doc(id).update(patch);return true;}catch(e){toast("Сақланмади");return false;}}
+  const r=state[col].find(r=>r.id===id);Object.assign(r,patch);render();return true;
+}
+
+/* ---------- cash math ---------- */
+function cashFor(m){
+  const s=state.sales.filter(inBranch);
+  const before=s.filter(r=>(r.date||"")<m+"-01");
+  const opening=sum(before.filter(r=>r.type==="in"))-sum(before.filter(r=>r.type==="out"));
+  const ms=s.filter(r=>(r.date||"").startsWith(m));
+  const inc=sum(ms.filter(r=>r.type==="in")), out=sum(ms.filter(r=>r.type==="out"));
+  const days=[...new Set(ms.map(r=>r.date))].sort();
+  let run=opening;
+  const rows=days.map(d=>{const di=sum(ms.filter(r=>r.date===d&&r.type==="in")),dout=sum(ms.filter(r=>r.date===d&&r.type==="out"));run+=di-dout;return {d,inc:di,out:dout,net:di-dout,cash:run};});
+  const byCat={};ms.filter(r=>r.type==="out").forEach(r=>{byCat[r.category||"Бошқа"]=(byCat[r.category||"Бошқа"]||0)+(+r.amount||0);});
+  const incCat={};ms.filter(r=>r.type==="in").forEach(r=>{incCat[r.category||"Бошқа"]=(incCat[r.category||"Бошқа"]||0)+(+r.amount||0);});
+  const chk=ms.filter(r=>r.type==="in"&&Array.isArray(r.items));
+  const itemRev=chk.reduce((a,r)=>a+r.items.reduce((x,i)=>x+i.qty*i.price,0)-(+r.discount||0),0);
+  const itemCost=chk.reduce((a,r)=>a+r.items.reduce((x,i)=>x+i.qty*(+i.cost||0),0),0);
+  return {opening,inc,out,net:inc-out,closing:opening+inc-out,rows,byCat,incCat,ms,itemRev,itemCost,checks:chk.length};
+}
+function supStats(name){
+  const e=state.supplies.filter(x=>x.supplier===name);
+  const credit=sum(e.filter(x=>x.type==="buy"&&!x.paid)), pays=sum(e.filter(x=>x.type==="pay"));
+  const last=e.filter(x=>x.type==="buy").map(x=>x.date).sort().pop()||"";
+  return {owed:Math.max(0,credit-pays),bought:sum(e.filter(x=>x.type==="buy")),last,entries:e};
+}
+const supOwedTotal=()=>state.suppliers.reduce((a,x)=>a+supStats(x.name).owed,0);
+function shiftCalc(br,date){
+  const s=state.sales.filter(r=>r.branch===br&&r.date===date);
+  const cashIn=sum(s.filter(r=>r.type==="in"&&!NONCASH.includes(r.category))), cardIn=sum(s.filter(r=>r.type==="in"&&NONCASH.includes(r.category))), out=sum(s.filter(r=>r.type==="out"));
+  const bySeller={};s.filter(r=>r.type==="in"&&r.seller).forEach(r=>{bySeller[r.seller]=(bySeller[r.seller]||0)+(+r.amount||0);});
+  const byPay={};s.filter(r=>r.type==="in").forEach(r=>{const k=r.category||"Бошқа";byPay[k]=(byPay[k]||0)+(+r.amount||0);});
+  return {cashIn,cardIn,out,byPay,expected:cashIn+cardIn-out,bySeller};
+}
+const norm=s=>String(s||"").toLowerCase().replace(/ё/g,"е").replace(/[^a-zа-яўқғҳ0-9]+/gi," ").trim();
+function priceRows(){const out=[];state.pricelists.forEach(d=>(d.rows||[]).forEach(r=>out.push({sup:d.supplier,date:d.date,n:r.n,b:r.b||"",p:+r.p||0,m:r.m||"",e:r.e||"",doc:d.id,manual:!!d.manual})));return out;}
+function matchRows(rows,{code,name}){
+  code=cleanCode(code);const nn=norm(name);const toks=nn.split(" ").filter(t=>t.length>=3||/\d/.test(t)).slice(0,3);
+  return rows.filter(r=>(code&&r.b&&cleanCode(r.b)===code)||(nn&&(norm(r.n)===nn||(toks.length&&toks.every(t=>(" "+norm(r.n)+" ").includes(t))))));
+}
+const cheapestFor=m=>{const r=matchRows(priceRows(),{code:m.barcode,name:m.name}).filter(x=>x.p>0).sort((a,b)=>a.p-b.p);return r[0]||null;};
+function loadXLSX(){
+  if(window.XLSX)return Promise.resolve(window.XLSX);
+  if(xlsxP)return xlsxP;
+  const urls=["https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js","https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"];
+  xlsxP=new Promise((res,rej)=>{let i=0;const next=()=>{if(i>=urls.length){xlsxP=null;return rej(new Error("load"));}const sc=document.createElement("script");sc.src=urls[i++];sc.onload=()=>window.XLSX?res(window.XLSX):next();sc.onerror=next;document.head.appendChild(sc);};next();});
+  return xlsxP;
+}
+const waNum=p=>{let d=String(p||"").replace(/\D/g,"");if(d.length===11&&d[0]==="8")d="7"+d.slice(1);if(d.length===10)d="7"+d;return d.length>=11?d:"";};
+const remindText=d=>{const k=d.due?daysTo(d.due):null;const w=d.due?(k<0?`муддати ${nice(d.due)} да тугаган`:k===0?"қайтариш куни бугун":`қайтариш куни ${nice(d.due)}`):"";return `Ассалому алайкум, ${d.name}. Shipa Pharm'дан. ${money(left(d))} қарзингизнинг ${w||"тўлаш вақти келди"}. Илтимос, келиб тўлаб кетсангиз. Савол бўлса, шу рақамга ёзинг.`;};
+const hashId=s=>{let h=5381;for(const c of String(s))h=((h*33)^c.charCodeAt(0))>>>0;return h.toString(36);};
+const xnum=v=>{if(typeof v==="number")return v;const t=String(v??"").replace(/[\s\u00a0]/g,"").replace(",",".").replace(/[^0-9.\-]/g,"");return t?+t:NaN;};
+function xdate(v){
+  if(v instanceof Date&&!isNaN(v))return iso(v);
+  if(typeof v==="number"&&v>20000&&v<80000){const d=new Date(Math.round((v-25569)*864e5));return iso(new Date(d.getTime()+d.getTimezoneOffset()*6e4));}
+  const s=String(v??"").trim();let m=s.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2,4})$/);
+  if(m){let y=+m[3];if(y<100)y+=2000;return y+"-"+pad(+m[2])+"-"+pad(+m[1]);}
+  m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);if(m)return m[0].slice(0,10);
+  m=s.match(/^(\d{1,2})[.\/](\d{4})$/);if(m){const y=+m[2],mo=+m[1];return y+"-"+pad(mo)+"-"+pad(new Date(y,mo,0).getDate());}
+  return "";
+}
+const LOGT={woff:"Ҳисобдан чиқарилди (муддати ўтган)",move:"Кўчирилди",count:"Санаб тузатилди",ret:"Мижоз қайтарди",imp:"Exceldan юкланди"};
+async function logStock(e){e.date=todayISO();await addRec("stocklog",e);}
+const isDeadB=b=>b.exp&&daysTo(b.exp)<0;
+const bLoss=(m,b)=>(+b.qty||0)*(+b.cost||+m.cost||0);
+const deadIn=m=>(m.batches||[]).filter(b=>+b.qty>0&&isDeadB(b)&&(branch==="all"||b.branch===branch));
+async function writeOff(m){const out=deadIn(m);if(!out.length)return 0;const keep=(m.batches||[]).filter(b=>!out.includes(b));
+  if(!(await updRec("meds",m.id,{batches:keep})))return -1;m.batches=keep;let loss=0;
+  for(const b of out){const l=bLoss(m,b);loss+=l;await logStock({type:"woff",barcode:m.barcode,name:m.name,qty:-(+b.qty),branch:b.branch,loss:l,note:"муддати "+nice(b.exp)+" · зарар "+num(l)+" ₸"});}
+  return loss;}
+function refreshML(){const f=document.getElementById("fields");if(f&&sheetKind==="medlist")f.innerHTML=formFields("medlist");render();}
+const phoneLine=x=>{if(!x)return"";if(!x.phone)return `<div class="m"><button class="x" data-edit="suppliers" data-id="${x.id}">+ рақам қўшиш</button></div>`;
+  const w=waNum(x.phone);return w?`<a class="wa" href="https://wa.me/${w}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0-7.8 13.5L3 21l4.6-1.2A9 9 0 1 0 12 3z"/><path d="M9 8.5c0 3.5 3 6.5 6.5 6.5l1-1.6-2-1-1 1c-1-.5-2-1.5-2.5-2.5l1-1-1-2z"/></svg>${esc(x.phone)}</a>`:`<div class="m sel">📞 ${esc(x.phone)}</div>`;};
+async function upsertManualPrice(sup,n,p,b){
+  const id="plm_"+hashId(sup);const d=state.pricelists.find(x=>x.id===id);
+  const rows=((d&&d.rows)||[]).filter(r=>!(b&&r.b===b)&&norm(r.n)!==norm(n));const o={n,p};if(b)o.b=b;const pe=val("f_pexp");if(pe)o.e=pe;rows.push(o);
+  return setDoc("pricelists",id,{supplier:sup,date:todayISO(),manual:true,rows});
+}
+const CATALOG=["Аквадетрим капли 15 мл", "Азитромицин капс 250 мг №6", "Азитромицин капс 500 мг №3", "Аллохол таб №50", "Альбендазол таб 400 мг №1", "Амброксол сироп 15 мг/5 мл 100 мл", "Амброксол таб 30 мг №20", "Амбробене сироп 100 мл", "Амиксин таб 125 мг №10", "Амлодипин таб 5 мг №30", "Амлодипин таб 10 мг №30", "Амоксиклав таб 625 мг №14", "Амоксиклав пор для сусп 457 мг/5 мл", "Амоксициллин капс 500 мг №16", "Анальгин таб 500 мг №10", "Анаферон детский таб №20", "Аскорбиновая кислота драже 50 мг №50", "Аспаркам таб №50", "Аспирин таб 500 мг №20", "Аспирин Кардио таб 100 мг №28", "Аторвастатин таб 20 мг №30", "Ацетилсалициловая кислота таб 500 мг №10", "АЦЦ пор 200 мг №20", "АЦЦ Лонг таб шип 600 мг №10", "Ацикловир крем 5% 5 г", "Ацикловир таб 200 мг №20", "Баралгин М таб №20", "Беродуал раствор для ингаляций 20 мл", "Бепантен крем 5% 30 г", "Бетадин раствор 10% 30 мл", "Бинт марлевый стерильный 7х14", "Бисопролол таб 5 мг №30", "Бриллиантовый зеленый р-р 1% 10 мл", "Бромгексин таб 8 мг №20", "Валидол таб 60 мг №10", "Валериана экстракт таб 20 мг №50", "Вата медицинская 100 г", "Верошпирон капс 50 мг №30", "Вольтарен гель 1% 50 г", "Галазолин капли назальные 0,1% 10 мл", "Гексорал спрей 0,2% 40 мл", "Гентамицин р-р для инъекций 40 мг/мл 2 мл №10", "Гептрал таб 400 мг №20", "Глицин таб 100 мг №50", "Глюкометр тест-полоски №50", "Граммидин таб для рассасывания №18", "Дексаметазон р-р для инъекций 4 мг/мл №25", "Детралекс таб 1000 мг №30", "Диазолин драже 100 мг №10", "Диклофенак таб 50 мг №20", "Диклофенак р-р для инъекций 75 мг 3 мл №5", "Диклофенак гель 5% 30 г", "Дротаверин таб 40 мг №20", "Дюфалак сироп 200 мл", "Зиртек капли 10 мг/мл 10 мл", "Зодак таб 10 мг №10", "Ибупрофен таб 200 мг №50", "Ибупрофен сусп для детей 100 мг/5 мл 100 мл", "Имодиум капс 2 мг №6", "Индапамид таб 2,5 мг №30", "Йод р-р спиртовой 5% 10 мл", "Йодомарин таб 100 мкг №100", "Ингавирин капс 90 мг №7", "Канефрон Н драже №60", "Каптоприл таб 25 мг №40", "Карбамазепин таб 200 мг №50", "Кагоцел таб 12 мг №10", "Кальций Д3 Никомед таб жев №30", "Кардиомагнил таб 75 мг №30", "Кеторол таб 10 мг №20", "Кеторол р-р для инъекций 30 мг/мл 1 мл №10", "Кетонал капс 50 мг №25", "Кларитромицин таб 500 мг №14", "Клотримазол крем 1% 20 г", "Ко-тримоксазол таб 480 мг №20", "Компливит таб №60", "Корвалол капли 25 мл", "Креон капс 10000 ЕД №20", "Ксилометазолин спрей 0,1% 10 мл", "Лазолван сироп 100 мл", "Левомеколь мазь 40 г", "Левофлоксацин таб 500 мг №10", "Лидокаин р-р для инъекций 2% 2 мл №10", "Лизиноприл таб 10 мг №30", "Линекс капс №16", "Лозартан таб 50 мг №30", "Лоперамид капс 2 мг №20", "Лоратадин таб 10 мг №10", "Магне B6 таб №50", "Мезим форте таб №20", "Мексидол таб 125 мг №30", "Мелоксикам таб 15 мг №20", "Метронидазол таб 250 мг №20", "Метформин таб 850 мг №60", "Метформин таб 1000 мг №60", "Мирамистин р-р 0,01% 150 мл", "Мукалтин таб 50 мг №30", "Найз таб 100 мг №20", "Називин спрей 0,05% 10 мл", "Нимесулид таб 100 мг №20", "Нитроглицерин таб 0,5 мг №40", "Новокаин р-р для инъекций 0,5% 5 мл №10", "Но-шпа таб 40 мг №24", "Нурофен таб 200 мг №10", "Нурофен для детей сусп 100 мл", "Омез капс 20 мг №30", "Омепразол капс 20 мг №30", "Офлоксацин таб 200 мг №10", "Панадол таб 500 мг №12", "Панкреатин таб 25 ЕД №50", "Пантопразол таб 40 мг №28", "Папаверин р-р для инъекций 2% 2 мл №10", "Парацетамол таб 500 мг №10", "Парацетамол сироп для детей 120 мг/5 мл 100 мл", "Парацетамол свечи 100 мг №10", "Пенталгин таб №12", "Перекись водорода р-р 3% 100 мл", "Пирацетам таб 400 мг №60", "Пластырь бактерицидный 1,9х7,2 №10", "Полисорб МП пор 3 г №10", "Преднизолон таб 5 мг №100", "Пустырник экстракт таб №50", "Ранитидин таб 150 мг №20", "Регидрон пор №20", "Ренни таб жев №24", "Розувастатин таб 10 мг №30", "Сальбутамол аэрозоль 100 мкг 200 доз", "Свечи с глицерином 2,11 г №10", "Септолете таб для рассасывания №30", "Синупрет драже №50", "Смекта пор 3 г №10", "Спазмалгон таб №20", "Спирт этиловый 70% 100 мл", "Стрепсилс таб для рассасывания №24", "Супрастин таб 25 мг №20", "Супрастин р-р для инъекций 20 мг/мл 1 мл №5", "Тавегил таб 1 мг №20", "Тантум Верде спрей 30 мл", "Тербинафин крем 1% 15 г", "Терафлю пор лимон №10", "Тест для беременности", "Тетрациклиновая мазь глазная 1% 3 г", "Тиотриазолин таб 200 мг №90", "Тонометр механический", "Траумель С мазь 50 г", "Трентал таб 100 мг №60", "Троксевазин гель 2% 40 г", "Уголь активированный таб 250 мг №10", "Уролесан капли 25 мл", "Фенистил гель 0,1% 30 г", "Фенибут таб 250 мг №20", "Флемоксин Солютаб таб 500 мг №20", "Флуконазол капс 150 мг №1", "Фуразолидон таб 50 мг №20", "Фурацилин таб 20 мг №10", "Фуросемид таб 40 мг №50", "Хлоргексидин р-р 0,05% 100 мл", "Цефазолин пор для инъекций 1 г", "Цефтриаксон пор для инъекций 1 г", "Цетиризин таб 10 мг №10", "Циклоферон таб 150 мг №10", "Цинаризин таб 25 мг №50", "Ципрофлоксацин таб 500 мг №10", "Ципролет капли глазные 0,3% 5 мл", "Цитрамон П таб №10", "Шприц 2 мл №1", "Шприц 5 мл №1", "Шприц 10 мл №1", "Эналаприл таб 10 мг №20", "Энтерофурил капс 200 мг №16", "Эргоферон таб №20", "Эспумизан капс 40 мг №25", "Эссенциале форте Н капс №30", "Эуфиллин таб 150 мг №30", "Эутирокс таб 50 мкг №100", "Ярина таб №21"];
+function allMedNames(){const m=new Map();const add=n=>{if(!n)return;const k=norm(n);if(k&&!m.has(k))m.set(k,n);};
+  priceRows().forEach(r=>add(r.n));state.meds.forEach(x=>add(x.name));CATALOG.forEach(add);return [...m.values()];}
+async function sha(t){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode("shipa:"+t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");}
+const usersDoc=()=>state.settings.find(x=>x.id==="users");
+const userList=()=>((usersDoc()&&usersDoc().users)||[]).filter(u=>u.role==="admin");
+const sharedAcc=()=>(usersDoc()&&usersDoc().shared&&usersDoc().shared.login)?usersDoc().shared:null;
+const lockOn=()=>!!sharedAcc()||userList().length>0;
+const saveUsers=(users,shared)=>setDoc("settings","users",{users,shared:shared===undefined?(usersDoc()&&usersDoc().shared)||null:shared});
+let me=(()=>{try{return JSON.parse((localStorage.getItem("sp_me")||sessionStorage.getItem("sp_me"))||"null")}catch(e){return null}})(), pinTries=0;
+let lockMode="login";
+function lockHTML(){
+  return `<form class="lockbox" id="lockForm"><div class="brand"><b>Shipa <span>Pharm</span></b></div>
+    <div class="f"><label for="lgIn">Логин</label><input id="lgIn" autocomplete="off" autocapitalize="none" class="pinin" style="letter-spacing:0;font-size:20px"></div>
+    <div class="f"><label for="pwIn">Парол</label><input id="pwIn" type="password" autocomplete="off" class="pinin" style="letter-spacing:.2em;font-size:20px"></div>
+    <div class="err" id="pinErr" hidden></div><button class="add big" type="submit">Кириш</button></form>`;
+}
+const boss=()=>!lockOn()||!!(me&&me.role==="admin");
+function validMe(){if(!me)return false;if(me.role==="admin")return userList().some(u=>u.login===me.login&&u.hash===me.h);const sh=sharedAcc();return !!sh&&sh.login===me.login&&sh.hash===me.h;}
+function showLock(){
+  let o=document.getElementById("lockScr");
+  const ok=!lockOn()||validMe();
+  const tag=document.getElementById("meTag");if(tag)tag.textContent=lockOn()&&me&&ok?"👤 "+(me.role==="admin"?me.name+" · раҳбар":(me.name?me.name+" · ходим":"ходим")):"";
+  if(ok){if(o)o.remove();return;}
+  if(o)return;
+  o=document.createElement("div");o.id="lockScr";o.innerHTML=lockHTML();
+  document.body.appendChild(o);setTimeout(()=>{const i=o.querySelector("input");if(i)i.focus();},50);
+}
+function setLockMode(m){lockMode=m;const o=document.getElementById("lockScr");if(o){o.innerHTML=lockHTML();const i=o.querySelector("input");if(i)i.focus();}}
+async function tryUnlock(){
+  const lg=((document.getElementById("lgIn")||{}).value||"").trim().replace(/\s+/g," ").toLowerCase(),pw=(document.getElementById("pwIn")||{}).value||"";const err=document.getElementById("pinErr");
+  if(pinTries>=3){err.textContent="3 марта хато киритилди. Бир дақиқадан кейин уриниб кўринг.";err.hidden=false;return;}
+  const h=await sha(lg+":"+pw);const ad=userList().find(x=>x.login===lg&&x.hash===h);const sh=sharedAcc();
+  if(ad)me={login:ad.login,name:ad.name||ad.login,role:"admin",h};
+  else if(sh&&sh.login===lg&&sh.hash===h){
+    const st=state.staff.filter(x=>x.name);
+    if(st.length){const o=document.getElementById("lockScr");pinTries=0;
+      o.innerHTML=`<div class="lockbox"><div class="brand"><b>Shipa <span>Pharm</span></b></div><div class="lbl">Сиз кимсиз? Исмингизни танланг</div>
+        <div class="pickme">${st.sort((a,b)=>(a.name||"").localeCompare(b.name||"")).map(x=>`<button type="button" class="btn2" data-iam="${esc(x.name)}">${esc(x.name)}<small>${esc(x.role||"")}${x.branch?" · "+esc(x.branch):""}</small></button>`).join("")}</div></div>`;
+      window._pendH=h;window._pendL=lg;return;}
+    me={login:lg,name:"",role:"staff",h};}
+  else{pinTries++;if(pinTries>=3)setTimeout(()=>pinTries=0,60000);err.textContent="Логин ёки парол нотўғри"+(pinTries<3?` (яна ${3-pinTries} марта уриниш мумкин)`:"");err.hidden=false;document.getElementById("pwIn").value="";return;}
+  try{localStorage.setItem("sp_me",JSON.stringify(me))}catch(e){};pinTries=0;if(me.name)seller=me.name;showLock();render();
+}
+function logout(){me=null;try{localStorage.removeItem("sp_me");sessionStorage.removeItem("sp_me")}catch(e){};closeMenu();showLock();}
+const markupPct=()=>{const d=state.settings.find(x=>x.id==="markup");return d&&d.pct!==undefined&&d.pct!==""?+d.pct:18;};
+const priceFromCost=c=>c>0?Math.ceil(c*(1+markupPct()/100)/5)*5:0;
+const MLT={low:"Кам қолган дорилар",dead:"Муддати ўтган дорилар",exp:"Муддати яқин дорилар"};
+function medsByKind(k){
+  if(k==="low")return state.meds.filter(isLow).sort((a,b)=>stockOf(a)-stockOf(b));
+  if(k==="dead")return state.meds.filter(m=>batchesIn(m).some(b=>b.exp&&daysTo(b.exp)<0));
+  return state.meds.filter(m=>batchesIn(m).some(b=>b.exp&&daysTo(b.exp)>=0&&daysTo(b.exp)<=EXP_WARN)).sort((a,b)=>nearestExp(a).localeCompare(nearestExp(b)));
+}
+let medListKind=null;
+let medOpen=null,_pi=null,_piSrc=null;
+function priceIndex(){if(_piSrc===state.pricelists&&_pi)return _pi;const b=new Map(),n=new Map();
+  priceRows().filter(r=>r.p>0).forEach(r=>{if(r.b){const k=cleanCode(r.b);(b.get(k)||b.set(k,[]).get(k)).push(r);}const k=norm(r.n);(n.get(k)||n.set(k,[]).get(k)).push(r);});
+  for(const m of [b,n])for(const v of m.values())v.sort((x,y)=>x.p-y.p);_pi={b,n};_piSrc=state.pricelists;return _pi;}
+function firmLine(m){
+  if(!boss())return "";
+  const I=priceIndex();const rows=((m.barcode&&I.b.get(cleanCode(m.barcode)))||I.n.get(norm(m.name))||[]);
+  if(!rows.length)return `<div class="m">Фирмаларда нархи йўқ</div>`;
+  const firms=new Set(rows.map(r=>r.sup)).size,b=rows[0];
+  return `<div class="fline"><span>Энг арзон: <b>${esc(b.sup)}</b> ${money(b.p)} → <b class="pos">${money(priceFromCost(b.p))}</b> <small>(+${markupPct()}%)</small></span>
+    <button class="x" data-medopen="${esc(m.id)}">${medOpen===m.id?"Ёпиш":firms+" та фирма"}</button></div>${medOpen===m.id?firmCard(m.barcode,m.name):""}`;
+}
+function firmCard(code,name){
+  if(!boss())return "";
+  const rows=matchRows(priceRows(),{code,name}).filter(r=>r.p>0).sort((a,b)=>a.p-b.p);
+  const best=new Map();rows.forEach(r=>{if(!best.has(r.sup))best.set(r.sup,r);});const list=[...best.values()];
+  if(!list.length)return "";
+  return `<div class="fc"><div class="fcbig"><span>Энг арзон фирмадан олсангиз, сотиш нархи (+${markupPct()}%)</span><b>${money(priceFromCost(list[0].p))}</b></div>
+    <table class="fct"><tbody>${list.slice(0,6).map((r,i)=>`<tr class="${i===0?"best":""}"><td>${esc(r.sup)}${i===0?" ✓":""}</td><td>${money(r.p)}</td><td class="m">→ ${money(priceFromCost(r.p))}</td>${r.e?`<td class="m">${fmtD(r.e)}</td>`:"<td></td>"}</tr>`).join("")}</tbody></table>
+    <div class="m" style="font-size:11.5px">фирма нархи → сотиш нархи (+${markupPct()}%) · муддати</div></div>`;
+}
+function stockSummary(br){const ms=state.meds;let kinds=0,units=0,cost=0,sale=0,exp=0,low=0;
+  ms.forEach(m=>{const q=stockOf(m,br);if(q>0)kinds++;units+=q;cost+=batchesIn(m,br).reduce((a,b)=>a+b.qty*(+b.cost||+m.cost||0),0);sale+=q*(+m.price||0);
+    if(batchesIn(m,br).some(b=>b.exp&&daysTo(b.exp)<0))exp++;if(q<=minOf(m))low++;});
+  return {kinds,units,cost,sale,exp,low};}
+const fmtD=s=>{if(!s)return"";const [y,m,d]=s.split("-");return d+"."+m+"."+y;};
+const pickChips=(id,names)=>{names=[...new Set(names.filter(Boolean))];return names.length?`<div class="picks">${names.slice(0,12).map(n=>`<button type="button" class="pick" data-pick="${esc(id)}" data-val="${esc(n)}">${esc(n)}</button>`).join("")}</div>`:"";};
+const editBtn=(col,id)=>`<button class="x" data-edit="${col}" data-id="${id}">Ўзгартириш</button>`;
+const rxChip=m=>m&&m.rx?'<span class="chip rx">Rx рецепт</span>':"";
+function debtStats(){const open=state.debts.filter(inBranch).filter(x=>left(x)>0);return {open,total:sum(open.map(x=>({amount:left(x)})))};}
+
+/* ---------- views ---------- */
+function chartSVG(){
+  const days=[];const now=new Date();
+  for(let i=13;i>=0;i--){const d=new Date(now);d.setDate(d.getDate()-i);days.push(iso(d));}
+  const inc=state.sales.filter(r=>r.type==="in");
+  const pick=(d,b)=>(branch==="all"||branch===b)?sum(inc.filter(r=>r.date===d&&r.branch===b)):0;
+  const data=days.map(d=>({d,a:pick(d,BRANCHES[0]),b:pick(d,BRANCHES[1])}));
+  const max=Math.max(1,...data.map(x=>x.a+x.b));
+  const step=Math.pow(10,Math.floor(Math.log10(max)));const top=Math.ceil(max/step)*step;
+  const W=640,H=220,L=52,R=8,T=10,B=26,cw=(W-L-R)/14,bw=cw*0.62,y=v=>T+(H-T-B)*(1-v/top);
+  let g="";for(let i=0;i<=2;i++){const v=top*i/2;g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${v>=1000?num(v/1000)+"k":v}</text>`;}
+  let bars="";data.forEach((x,i)=>{const cx=L+i*cw+(cw-bw)/2;const ya=y(x.a),yb=y(x.a+x.b);
+    if(x.a)bars+=`<rect x="${cx}" y="${ya}" width="${bw}" height="${y(0)-ya}" rx="2" fill="var(--accent)"><title>${nice(x.d)}: ${money(x.a)}</title></rect>`;
+    if(x.b)bars+=`<rect x="${cx}" y="${yb}" width="${bw}" height="${ya-yb}" rx="2" fill="var(--branch2)"><title>${nice(x.d)}: ${money(x.b)}</title></rect>`;
+    if(i%2===1||i===13)bars+=`<text x="${cx+bw/2}" y="${H-8}" text-anchor="middle" font-size="11" fill="${i===13?"var(--ink)":"var(--muted)"}" ${i===13?'font-weight="700"':""}>${+x.d.slice(8)}</text>`;});
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Охирги 14 кунлик кирим">${g}${bars}</svg>`;
+}
+
+function finishedToday(){const t=todayISO(),sold=new Map();
+  [...state.sales.filter(r=>r.date===t&&Array.isArray(r.items)&&inBranch(r)).map(r=>r.items),...state.debts.filter(r=>r.date===t&&Array.isArray(r.saleItems)&&inBranch(r)).map(r=>r.saleItems)]
+    .forEach(items=>items.forEach(i=>sold.set(i.barcode,(sold.get(i.barcode)||0)+(+i.qty||0))));
+  return state.meds.filter(m=>stockOf(m)<=0).map(m=>{const q=sold.get(m.barcode)||0;return {m,br:branch==="all"?"":branch,qty:q,today:q>0,want:q>0?q:Math.max(1,minOf(m)),c:cheapestFor(m)};})
+    .sort((a,b)=>(b.today-a.today)||(a.m.name||"").localeCompare(b.m.name||""));}
+function zGroups(){const f=finishedToday();const g=new Map();f.forEach(x=>{const k=x.c?x.c.sup:"";(g.get(k)||g.set(k,[]).get(k)).push(x);});
+  return [...g.entries()].sort((a,b)=>(a[0]?0:1)-(b[0]?0:1)||a[0].localeCompare(b[0]));}
+function orderBlock(){const groups=zGroups();const n=groups.reduce((a,g)=>a+g[1].length,0);
+  return `<section class="panel"><div class="ph"><h2>Тугаган дорилар — заказ</h2><span class="lbl">${n} та</span></div>
+  ${n?groups.map(([sup,list],gi)=>{const sx=state.suppliers.find(z=>z.name===sup);const w=sx&&waNum(sx.phone);
+    return `<div class="fcard"><div class="ftop"><div class="dname">${sup?esc(sup):"Фирмаларда нархи йўқ"}</div>${sup?`<span class="lbl">энг арзон</span>`:""}</div>
+    <div class="list">${list.map((x,i)=>`<div class="row"><div><div class="t" style="white-space:normal">${esc(x.m.name)}</div><div class="m">${x.today?`<b>бугун тугади</b> · ${num(x.qty)} та сотилди`:"тугаган"} · қолди 0 ${x.br?bchip(x.br):""}${x.c&&boss()?" · "+num(x.c.p)+" ₸":""}</div></div>
+      <label class="zq"><input type="number" inputmode="numeric" min="0" id="zq_${gi}_${i}" value="${x.want}" aria-label="Нечта"><span>та</span></label></div>`).join("")}</div>
+    ${sup?(w?`<a class="wa" id="zl_${gi}" href="${zUrl(gi,list,w)}" target="_blank" rel="noopener">${esc(sup)}га WhatsApp'да заказ</a>`:`<div class="m">Бу фирманинг телефони ёзилмаган — «Фирмалар»дан қўшинг</div>`):""}</div>`;}).join("")
+  :`<div class="empty">Тугаган дори йўқ ✓</div>`}
+  <div class="m" style="font-size:12px;color:var(--muted)">Бугун тугаганлар тепада. Сони: бугун сотилган бўлса — шунча, бўлмаса «кам» чегараси бўйича ёзилди. Керак бўлса ўзгартириб, кейин тугмани босинг. 0 ёзсангиз, заказга кирмайди.</div></section>`;}
+function zUrl(gi,list,w){const rows=list.map((x,i)=>{const e=document.getElementById("zq_"+gi+"_"+i);const q=Math.round(+(e&&e.value!==""?e.value:x.want)||0);return q>0?{n:x.m.name,q}:null;}).filter(Boolean);
+  const sup=list[0]&&list[0].c?list[0].c.sup:"";
+  const txt="Ассалому алайкум! Shipa Pharm"+(branch==="all"?"":" ("+branch+")")+" заказ:\n"+rows.map((r,i)=>(i+1)+". "+r.n+" — "+r.q+" та").join("\n")+"\nРаҳмат!";
+  return "https://wa.me/"+w+"?text="+encodeURIComponent(txt);}
+function zRefresh(gi){const g=zGroups()[gi];if(!g)return;const sx=state.suppliers.find(z=>z.name===g[0]);const w=sx&&waNum(sx.phone);const a=document.getElementById("zl_"+gi);if(a&&w)a.href=zUrl(gi,g[1],w);}
+document.addEventListener("input",e=>{const m=/^zq_(\d+)_/.exec(e.target.id||"");if(m)zRefresh(+m[1]);});
+function homeView(){
+  const t=todayISO(),m=t.slice(0,7);
+  const s=state.sales.filter(inBranch);
+  const tIn=sum(s.filter(r=>r.type==="in"&&r.date===t)), tOut=sum(s.filter(r=>r.type==="out"&&r.date===t));
+  const c=cashFor(m), ds=debtStats();
+  const low=state.meds.filter(isLow), exp=state.meds.filter(x=>{const e=nearestExp(x);return e&&daysTo(e)<=EXP_WARN;});
+  const leg=branch==="all"?`<div class="legend"><span><i style="background:var(--accent)"></i>Қорабулоқ</span><span><i style="background:var(--branch2)"></i>Қожақўрғон</span></div>`:"";
+  const sN=COLS.reduce((a,c)=>a+state[c].filter(r=>r.sample).length,0);
+  return `
+  ${boss()?`<section class="panel"><label class="lbl" for="hpq">Дори нархини қидириш — қайси фирмада арзон</label>
+    <div class="tools"><input id="hpq" type="search" autocomplete="off" placeholder="Дори номини ёзинг ва Enter босинг"><button class="btn2 pri" data-hpq>Қидириш</button></div></section>`:""}
+  <section class="kpis">
+    <div class="kpi main"><span class="lbl">Бугун кассада қолди</span><span class="v">${money(tIn-tOut)}</span><span class="s">Кирим ${money(tIn)} · Чиқим ${money(tOut)}</span></div>
+    <div class="kpi"><span class="lbl">Ой кирими</span><span class="v">${money(c.inc)}</span><span class="s">${monthName(m)}</span></div>
+    <div class="kpi"><span class="lbl">Ой чиқими</span><span class="v">${money(c.out)}</span><span class="s">ҳамма харажат</span></div>
+    ${boss()?`<div class="kpi"><span class="lbl">Соф фойда</span><span class="v ${c.net>=0?"pos":"neg"}">${money(c.net)}</span><span class="s">кирим − чиқим</span></div>`:""}
+    <div class="kpi"><span class="lbl">Одамлардаги қарз</span><span class="v ${ds.total?"neg":""}">${money(ds.total)}</span><span class="s">${ds.open.length} та қарз</span></div>
+    <div class="kpi"><span class="lbl">Дорихонадаги товар</span><span class="v">${money(stockSummary(branch).cost)}</span><span class="s">${num(stockSummary(branch).units)} дона · сотиш нархида ${money(stockSummary(branch).sale)}</span></div>
+    <div class="kpi"><span class="lbl">Таъминотчиларга қарзимиз</span><span class="v ${supOwedTotal()?"neg":""}">${money(supOwedTotal())}</span><span class="s">${state.suppliers.filter(x=>supStats(x.name).owed>0).length} та фирмага</span></div>
+  </section>
+  ${FB&&!state.meds.length&&!state.sales.length&&boss()?`<section class="panel"><h2>Демо</h2><div class="m">База ҳозир бўш. Дастурни синаб кўриш учун намуна маълумот қўшайми? Кейин «Логин ва парол»даги «намуналарни ўчириш» эмас, менга айтсангиз тозалаб бераман.</div><div class="acts" style="justify-content:flex-start"><button class="btn2 pri" data-seeddemo>Демо маълумот қўшиш</button></div></section>`:""}
+  ${state.meds.length?`<div class="grid2">
+    <section class="panel"><div class="ph"><h2>Кам қолган дорилар</h2><button class="x" data-medf="low">Ҳаммаси (${low.length}) →</button></div>
+      <div class="list">${low.sort((a,b)=>stockOf(a)-stockOf(b)).slice(0,5).map(x=>`<div class="row"><div class="t">${esc(x.name)}</div><span class="amt ${stockOf(x)?"":"out"}">${stockOf(x)} та</span></div>`).join("")||`<div class="empty">Ҳамма дори етарли</div>`}</div></section>
+    <section class="panel"><div class="ph"><h2>Муддати яқин дорилар</h2><button class="x" data-medf="exp">Ҳаммаси (${exp.length}) →</button></div>
+      <div class="list">${exp.sort((a,b)=>nearestExp(a).localeCompare(nearestExp(b))).slice(0,5).map(x=>`<div class="row"><div><div class="t">${esc(x.name)}</div><div class="m">${stockOf(x)} та</div></div>${expChip(nearestExp(x))}</div>`).join("")||`<div class="empty">Муддати яқин дори йўқ</div>`}</div></section>
+  </div>`:""}
+  <section class="panel chart"><div class="ph"><h2>Охирги 14 кун кирими</h2>${leg}</div>${chartSVG()}</section>
+  <section class="panel"><div class="ph"><h2>Қарздорлар</h2><button class="x" data-go="debts">Ҳаммаси →</button></div>
+    <div class="list">${ds.open.sort((a,b)=>left(b)-left(a)).slice(0,5).map(debtRow).join("")||`<div class="empty">Қарздор йўқ</div>`}</div></section>`;
+}
+
+function delBtn(col,id){return confirmId===id?`<button class="x ok" data-del="${col}" data-id="${id}">Ўчирилсинми?</button><button class="x" data-cancel>Йўқ</button>`:`<button class="x" data-ask="${id}">Ўчириш</button>`;}
+
+/* --- sale --- */
+function sellView(){
+  const br=branch==="all"?saleBranch:branch;
+  const lines=cart.map(c=>{const m=findMed(c.barcode);return m?{c,m}:null;}).filter(Boolean);
+  const total=lines.reduce((a,{c,m})=>a+c.qty*(+m.price||0),0);
+  const disc=discOf(total), pay=total-disc;
+  const matches=msq?state.meds.filter(m=>(m.name||"").toLowerCase().includes(msq.toLowerCase())).slice(0,6):[];
+  return `<section class="panel scan">
+    <label class="lbl" for="scan">Сотилаётган дорини сканерланг</label>
+    <div class="scanrow"><input id="scan" inputmode="numeric" autocomplete="off" placeholder="Штрих-код…" aria-label="Штрих-код"><label class="cam"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Камера<input autocomplete="off" type="file" accept="image/*" capture="environment" class="camfile" data-camt="scan" aria-label="Камера билан штрих-кодни ўқиш"></label><label class="cam gal"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>Галерея<input autocomplete="off" type="file" accept="image/*" class="camfile" data-camt="scan" aria-label="Галереядан расм танлаш"></label></div>
+    ${saleMsg?`<div class="hit no">${(()=>{const r=matchRows(priceRows(),{code:saleMsg}).filter(x=>x.p>0)[0];return r?`<span class="nm" style="font-size:18px">${esc(r.n)}</span><span class="bc">Дорихонада ҳали киритилмаган. Сотиш учун аввал «Дори қилиб қўшиш»ни босинг.</span>${firmCard(saleMsg,"")}`:`<span class="bc">Бу код ҳеч қаерда йўқ: <b>${esc(saleMsg)}</b></span>`;})()}<div class="acts"><button class="btn2 pri" data-newmed="${esc(saleMsg)}">Дори қилиб қўшиш</button><button class="btn2" data-dismiss>Ёпиш</button></div></div>`:""}
+    <input autocomplete="off" id="msearch" type="search" placeholder="Ёки номи бўйича қидиринг…" value="${esc(msq)}" style="border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 12px">
+    ${matches.length?`<div class="list">${matches.map(m=>`<div class="row"><div><div class="t">${esc(m.name)}</div><div class="m">${money(m.price)} · бор: ${stockOf(m,br||"all")} та</div></div><button class="btn2 pri" data-addcart="${esc(m.barcode)}">+ Қўшиш</button></div>`).join("")}</div>`:""}
+  </section>
+  <section class="panel">
+    <div class="ph"><h2>Сотилаётган дорилар</h2>${cart.length?`<button class="x" data-clearcart>Тозалаш</button>`:""}</div>
+    <div class="list">${lines.map(({c,m})=>{const st=stockOf(m,br||"all");return `<div class="row"><div><div class="t">${esc(m.name)} ${m.rx?'<span class="chip rx">рецептни сўранг</span>':""}</div><div class="m">${money(m.price)} × ${c.qty} ${br&&c.qty>st?`<span class="chip late">дорихонада ${st} та</span>`:""}</div></div>
+      <div class="acts"><div class="qty"><button data-dec="${esc(m.barcode)}" aria-label="Камайтириш">−</button><span>${c.qty}</span><button data-inc="${esc(m.barcode)}" aria-label="Кўпайтириш">+</button></div><span class="amt">${money(c.qty*m.price)}</span></div></div>`;}).join("")||`<div class="empty">Рўйхат бўш. Дорининг кодини ўқитинг.</div>`}</div>
+    ${lines.length?`<div class="frow"><div class="f"><label for="disc">Чегирма</label><input autocomplete="off" id="disc" type="number" inputmode="numeric" min="0" value="${esc(discVal)}" placeholder="0"></div>
+      <div class="f"><label for="discMode">Тури</label><select id="discMode"><option value="sum">₸ сумма</option><option value="pct" ${discMode==="pct"?"selected":""}>% фоиз</option></select></div></div>
+    ${disc?`<div class="sum"><span>Жами: <b>${money(total)}</b></span><span>Чегирма: <b class="neg">−${money(disc)}</b></span></div>`:""}
+    <div class="total"><span>Тўланади</span><b>${money(pay)}</b></div>
+    ${branch==="all"?`<div class="f"><label for="saleBr">Қайси филиалда сотилди</label><select id="saleBr"><option value="">— танланг —</option>${BRANCHES.map(b=>`<option ${b===saleBranch?"selected":""}>${b}</option>`).join("")}</select></div>`:""}
+    <div class="seg" role="group" aria-label="Тўлов тури" style="margin:0">${[["cash","Нақд"],["halyk","Халқ банк"],["kaspi","Kaspi"],["kaspipay","Kaspi Pay"],["debt","Қарзга"]].map(([v,l])=>`<button data-pt="${v}" aria-pressed="${payType===v}">${l}</button>`).join("")}</div>
+    ${payType!=="debt"?`<div class="f"><label for="paidAmt">Қанча пул келди (₸) — ўзгартириш мумкин</label><input id="paidAmt" type="number" inputmode="numeric" min="0" autocomplete="off" value="${pay}" placeholder="${pay}"></div>`:""}
+    ${state.staff.length?`<div class="f"><label for="seller">Ким сотди</label><select id="seller"><option value="">— танланг —</option>${state.staff.filter(x=>!br||x.branch===br).map(x=>`<option ${x.name===seller?"selected":""}>${esc(x.name)}</option>`).join("")}</select></div>`:""}
+    ${payType==="debt"?`<div class="frow"><div class="f"><label for="dName">Ким олди</label><input id="dName" autocomplete="off"></div><div class="f"><label for="dPhone">Телефон</label><input autocomplete="off" id="dPhone" type="tel"></div></div>${pickChips("dName",state.customers.map(c=>c.name))}`:""}
+    <div class="err" id="sellErr" hidden></div>
+    <button class="add big" data-sell ${selling?"disabled":""}>${payType==="debt"?"Қарзга ёзиш":"Сотилди"} — ${money(pay)}</button>`:""}
+  </section>`;
+}
+function discOf(total){const v=+discVal||0;if(v<=0)return 0;return Math.min(total,discMode==="pct"?Math.round(total*Math.min(v,100)/100):Math.round(v));}
+function addToCart(code){
+  code=cleanCode(code);const m=findMed(code);
+  if(!m){saleMsg=code;return render();}
+  saleMsg=null;const c=cart.find(x=>x.barcode===m.barcode);
+  if(c)c.qty++;else cart.push({barcode:m.barcode,qty:1});
+  render();
+}
+async function completeSale(){
+  if(selling)return;
+  const err=$("#sellErr");const fail=t=>{err.textContent=t;err.hidden=false;};
+  const br=branch==="all"?($("#saleBr")?$("#saleBr").value:saleBranch):branch;
+  if(!br)return fail("Филиални танланг");
+  const lines=cart.map(c=>({c,m:findMed(c.barcode)})).filter(x=>x.m);
+  if(!lines.length)return fail("Ҳали дори қўшилмади");
+  const dName=$("#dName")?$("#dName").value.trim():"",dPhone=$("#dPhone")?$("#dPhone").value.trim():"";
+  if(payType==="debt"&&!dName)return fail("Ким олганини ёзинг");
+  const who=($("#seller")&&$("#seller").value)||(me&&me.name)||"";
+  selling=true;
+  const items=lines.map(({c,m})=>({barcode:m.barcode,name:m.name,qty:c.qty,price:+m.price||0,cost:+m.cost||0}));
+  const gross=items.reduce((a,i)=>a+i.qty*i.price,0), costTotal=items.reduce((a,i)=>a+i.qty*i.cost,0);
+  const discount=discOf(gross), total=gross-discount;
+  try{
+    for(const {c,m} of lines){if(!(await updRec("meds",m.id,{batches:consume(m.batches,br,c.qty)})))throw 0;}
+    const date=todayISO(),desc=items.map(i=>i.name+(i.qty>1?" ×"+i.qty:"")).join(", ");
+    let ok;
+    if(payType==="debt"){ok=await addRec("debts",{name:dName,phone:dPhone,items:desc,amount:total,date,due:"",branch:br,payments:[],saleItems:items,seller:who,discount});if(ok)await ensureCustomer(dName,dPhone,br);}
+    else{const pe=$("#paidAmt"),paid=pe&&pe.value!==""?Math.round(+pe.value):total;ok=await addRec("sales",{type:"in",amount:paid>=0?paid:total,date,category:PAY_NAMES[payType]||"Нақд",branch:br,note:"Сотув: "+desc+(discount?" (чегирма "+num(discount)+")":"")+(paid!==total?" · ҳисоб "+num(total)+", келган "+num(paid):""),items,costTotal,seller:who,discount});}
+    if(!ok)throw 0;
+    toast((payType==="debt"?"Қарзга ёзилди: ":"Сотилди: ")+money(total));
+    cart=[];saleMsg=null;msq="";payType="cash";discVal="";
+  }catch(e){toast("Сотув тўлиқ сақланмади, текшириб кўринг");}
+  selling=false;render();
+}
+
+/* --- medicines / stock --- */
+function medsView(){
+  const hit=scanCode?findMed(scanCode):null;
+  let list=[...state.meds];
+  if(medFilter==="low")list=list.filter(isLow);
+  if(medFilter==="exp")list=list.filter(m=>{const e=nearestExp(m);return e&&daysTo(e)>=0&&daysTo(e)<=EXP_WARN;});
+  if(medFilter==="dead")list=list.filter(m=>batchesIn(m).some(b=>b.exp&&daysTo(b.exp)<0));
+  if(q){const k=q.toLowerCase();list=list.filter(m=>(m.name||"").toLowerCase().includes(k)||(m.barcode||"").includes(k));}
+  list.sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  const stockVal=state.meds.reduce((a,m)=>a+stockOf(m)*(+m.cost||0),0);
+  const perBranch=m=>branch==="all"?BRANCHES.map(b=>b.slice(0,3)+": "+stockOf(m,b)).join(" · "):"";
+  const margin=m=>m.cost?Math.round((m.price-m.cost)/m.cost*100):null;
+  return `<section class="panel scan">
+    <div class="ph"><label class="lbl" for="scan">${invMode?"Инвентаризация: дорини сканерланг ва санаб ёзинг":"Штрих-кодни ўқитинг"}</label>
+      <div class="acts"><button class="btn2 toggle" data-inv aria-pressed="${invMode}">Инвентаризация</button><button class="btn2" data-import="meds">Exceldan юклаш</button><button class="btn2 pri" data-recv="">+ Товар келди</button></div></div>
+    <div class="scanrow"><input id="scan" inputmode="numeric" autocomplete="off" placeholder="Код шу ерга тушади…" aria-label="Штрих-код"><label class="cam"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Камера<input autocomplete="off" type="file" accept="image/*" capture="environment" class="camfile" data-camt="scan" aria-label="Камера билан штрих-кодни ўқиш"></label><label class="cam gal"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>Галерея<input autocomplete="off" type="file" accept="image/*" class="camfile" data-camt="scan" aria-label="Галереядан расм танлаш"></label></div>
+    ${scanCode?(hit?`<div class="hit ok"><span class="nm">${esc(hit.name)} ${rxChip(hit)}</span><span class="pr">${money(hit.price)}</span>
+      <span class="bc">Дорихонада бор: <b>${stockOf(hit)} та</b>${perBranch(hit)?" ("+perBranch(hit)+")":""}${hit.cost?` · келиш нархи ${money(hit.cost)} · устама ${margin(hit)}%`:""}</span>
+      <span class="bc">${batchesIn(hit).map(b=>`${b.qty} та — ${b.exp?expChip(b.exp):"муддати ёзилмаган"}`).join("<br>")||"Дорихонада қолмаган"}</span>
+      <span class="bc">Штрих-код: ${esc(hit.barcode)}</span>
+      ${firmCard(hit.barcode,hit.name)}
+      <div class="acts"><button class="btn2 pri" data-recv="${esc(hit.barcode)}">Товар келди</button><button class="btn2" data-mop="move" data-code="${esc(hit.barcode)}">Кўчириш</button><button class="btn2" data-mop="count" data-code="${esc(hit.barcode)}">Санаш</button><button class="btn2" data-mop="ret" data-code="${esc(hit.barcode)}">Мижоз қайтарди</button><button class="btn2" data-editmed="${esc(hit.barcode)}">Ўзгартириш</button></div></div>`
+      :(()=>{const r=matchRows(priceRows(),{code:scanCode}).filter(x=>x.p>0)[0];return r?`<div class="hit ok"><span class="nm">${esc(r.n)}</span><span class="pr">${money(priceFromCost(matchRows(priceRows(),{code:scanCode}).filter(x=>x.p>0).sort((a,b)=>a.p-b.p)[0].p))}</span><span class="bc">Дорихонада ҳали йўқ · фирмалар прайсидан топилди · штрих-код: ${esc(scanCode)}</span>${firmCard(scanCode,"")}<div class="acts"><button class="btn2 pri" data-recv="${esc(scanCode)}">Товар келди</button></div></div>`
+      :`<div class="hit no"><span class="nm">Бу код ҳеч қаерда йўқ</span><span class="bc">Штрих-код: ${esc(scanCode)} · дорихонада ҳам, фирмалар прайсида ҳам топилмади</span><div class="acts"><button class="btn2 pri" data-recv="${esc(scanCode)}">Товар келди деб киритиш</button></div></div>`;})())
+      :`<div class="m" style="color:var(--muted);font-size:13px">Кодни ўқитсангиз, дорининг номи, нархи, қолдиғи ва муддати чиқади.</div>`}
+  </section>
+  <section class="panel">
+    <div class="ph"><h2>Дорихонадаги дорилар</h2><span class="lbl">${branch==="all"?"иккала филиал":esc(branch)}</span></div>
+    ${(()=>{const S=stockSummary(branch);return `<div class="kv kv4">
+      <div><span class="lbl">Дорилар қанча пуллик (келиш нархида)</span><b>${money(S.cost)}</b></div>
+      <div><span class="lbl">Сотилса қанча пул бўлади</span><b class="pos">${money(S.sale)}</b></div>
+      <div><span class="lbl">Дорилар сони</span><b>${num(S.kinds)} хил</b><small>жами ${num(S.units)} дона</small></div>
+      <button class="kvb ${S.low?"bad":""}" data-medlist="low"><span class="lbl">Кам қолган дорилар</span><b>${S.low} та</b><small>${minOf({})} тадан кам қолган · кўриш →</small></button>
+      <button class="kvb ${S.exp?"bad":""}" data-medlist="dead"><span class="lbl">Муддати ўтган дорилар</span><b>${S.exp} та</b><small>${S.exp?"сотманг, ажратиб қўйинг · кўриш →":"йўқ"}</small></button>
+      <button class="kvb" data-medlist="exp"><span class="lbl">Муддати яқин дорилар</span><b>${state.meds.filter(m=>batchesIn(m).some(b=>b.exp&&daysTo(b.exp)>=0&&daysTo(b.exp)<=EXP_WARN)).length} та</b><small>${EXP_WARN} кун ичида тугайди · кўриш →</small></button></div>
+      ${branch==="all"?`<div class="sum">${BRANCHES.map(b=>{const x=stockSummary(b);return `<span>${esc(b)}: <b>${money(x.cost)}</b> (${num(x.units)} дона)</span>`;}).join("")}</div>`:""}`;})()}
+    <div class="seg" role="group" aria-label="Саралаш" style="margin:0">${[["all","Ҳаммаси"],["low","Кам қолган"],["exp","Муддати яқин"],["dead","Муддати ўтган"]].map(([v,l])=>`<button data-medf="${v}" aria-pressed="${medFilter===v}">${l}</button>`).join("")}</div>
+    <div class="tools"><input autocomplete="off" id="search" type="search" placeholder="Номи ёки штрих-коди…" value="${esc(q)}"></div>
+    <div class="list">${list.map(m=>{const st=stockOf(m);const low=st<=minOf(m);const I=priceIndex();const fr=((m.barcode&&I.b.get(cleanCode(m.barcode)))||I.n.get(norm(m.name))||[]);const bf=fr[0];const nf=new Set(fr.map(r=>r.sup)).size;
+      const bt=batchesIn(m);
+      return `<div class="mcard">
+      <div class="ftop"><div class="dname">${esc(m.name)} ${rxChip(m)}</div>${low?'<span class="chip late">кам қолди</span>':""}</div>
+      <dl class="dl">
+        <dt>Сотиш нархи</dt><dd><b>${money(m.price)}</b></dd>
+        <dt>Келиш нархи</dt><dd>${m.cost?money(m.cost):"—"}</dd>
+        <dt>Дорихонада қолди</dt><dd><b class="${low?"neg":""}">${st} та</b>${branch==="all"&&st?`<small>Қорабулоқ: ${stockOf(m,BRANCHES[0])} та</small><small>Қожақўрғон: ${stockOf(m,BRANCHES[1])} та</small>`:""}</dd>
+        <dt>Қолганининг суммаси</dt><dd>${money(st*(+m.cost||0))}</dd>
+        <dt>Яроқлилик муддати</dt><dd>${bt.length?bt.map(b=>`<div class="expl"><span>${b.qty} таси:</span>${b.exp?expChip(b.exp):"ёзилмаган"}</div>`).join(""):'<span class="chip late">дори қолмаган</span>'}</dd>
+        ${boss()?`<dt>Энг арзон фирма</dt><dd>${bf?`<b>${esc(bf.sup)}</b><small class="nw">${money(bf.p)}</small>`:"фирмаларда нархи йўқ"}</dd>`:""}
+        ${bf&&boss()?`<dt>Ундан олсангиз сотиш нархи</dt><dd><b class="pos">${money(priceFromCost(bf.p))}</b> <small>(+${markupPct()}%)</small></dd>`:""}
+        <dt>Штрих-код</dt><dd><small>${esc(m.barcode)}</small></dd>
+      </dl>
+      ${medOpen===m.id&&bf?firmCard(m.barcode,m.name):""}
+      <div class="dacts">${nf?`<button class="btn2" data-medopen="${esc(m.id)}">${medOpen===m.id?"Фирмаларни ёпиш":"Ҳамма фирмалар ("+nf+")"}</button>`:""}<button class="btn2" data-recv="${esc(m.barcode)}">Товар келди</button><button class="btn2" data-editmed="${esc(m.barcode)}">Ўзгартириш</button>${delBtn("meds",m.id)}</div>
+      </div>`;}).join("")
+      ||`<div class="empty">${state.meds.length?"Бу рўйхатда дори йўқ":"Ҳали дори йўқ. «+ Товар келди» тугмасини босиб, кодини ўқитинг."}</div>`}</div>
+  </section>
+  ${state.stocklog.length?`<section class="panel"><h2>Дори ҳаракатлари (кўчириш, санаш, қайтариш)</h2><div class="list">${state.stocklog.filter(e=>branch==="all"||e.branch===branch||e.from===branch||e.to===branch).sort(byDate).slice(0,15).map(e=>`<div class="row"><div><div class="t">${esc(e.name)}</div><div class="m">${nice(e.date)} · ${LOGT[e.type]||""}${e.type==="move"?": "+esc(e.from)+" → "+esc(e.to):e.branch?" · "+esc(e.branch):""}${e.note?" · "+esc(e.note):""}</div></div><div class="acts"><span class="amt">${e.qty>0&&e.type!=="move"?"+":""}${num(e.qty)} та</span>${delBtn("stocklog",e.id)}</div></div>`).join("")}</div><div class="m" style="font-size:12px;color:var(--muted)">Бу ёзувни ўчириш дорилар сонини ўзгартирмайди. Сонни тузатиш учун дорини «Ўзгартириш»дан тўғриланг.</div></section>`:""}`;
+}
+function doScan(code){
+  code=cleanCode(code);if(!code)return;
+  if(view==="sell")return addToCart(code);
+  if(invMode&&findMed(code)){scanCode=code;medFor=code;if(view!=="meds")setTab("meds",true);return openSheet("count");}
+  scanCode=code;q="";medFilter="all";
+  if(view!=="meds")setTab("meds",true);else render();
+}
+
+function saleRow(r){
+  return `<div class="row"><div><div class="t">${esc(r.category||"")}${r.note?" · "+esc(r.note):""}</div><div class="m">${nice(r.date)} ${bchip(r.branch)}</div></div>
+  <div class="acts"><span class="amt ${r.type==="in"?"in":"out"}">${r.type==="in"?"+":"−"}${money(r.amount)}</span>${editBtn("sales",r.id)}${delBtn("sales",r.id)}</div></div>`;
+}
+function moneyView(){
+  const c=cashFor(monthSel);
+  const months=[...new Set([todayISO().slice(0,7),...state.sales.map(r=>(r.date||"").slice(0,7))])].filter(Boolean).sort().reverse();
+  const outCats=Object.entries(c.byCat).sort((a,b)=>b[1]-a[1]);
+  const maxCat=Math.max(1,...outCats.map(x=>x[1]));
+  const dayList=daySel?c.ms.filter(r=>r.date===daySel).sort(byDate):[];
+  const wd=d=>WD[new Date(d+"T12:00").getDay()];
+  const t=todayISO();
+  const shifts=state.shifts.filter(inBranch).sort(byDate).slice(0,8);
+  const diffChip=d=>d===0?'<span class="chip paid">тўғри</span>':d<0?`<span class="chip late">камомад ${money(-d)}</span>`:`<span class="chip warnc">ортиқча ${money(d)}</span>`;
+  return `<section class="panel">
+    <div class="ph"><h2>Бугунги касса</h2><span class="lbl">${nice(t)}</span></div>
+    ${BRANCHES.filter(b=>branch==="all"||b===branch).map(b=>{const x=shiftCalc(b,t);const done=state.shifts.find(z=>z.branch===b&&z.date===t);return `<div class="shift">
+      <div class="ph">${bchip(b)}${done?`<span class="m">ёпилди: ${esc(done.by||"")} ${diffChip(done.diff)}</span>`:""}</div>
+      <div class="sum">${Object.entries(x.byPay).filter(([k,v])=>v).map(([k,v])=>`<span>${esc(k)}: <b>${money(v)}</b></span>`).join("")}<span>Жами кирим: <b>${money(x.cashIn+x.cardIn)}</b></span><span>Чиқим: <b>${money(x.out)}</b></span></div>
+      ${Object.keys(x.bySeller).length?`<div class="sum">${Object.entries(x.bySeller).map(([k,v])=>`<span>${esc(k)}: <b>${money(v)}</b></span>`).join("")}</div>`:""}
+      <div class="ph"><span>Кассада бўлиши керак: <b>${money(x.expected)}</b></span><button class="btn2 pri" data-closeshift="${b}">${done?"Қайта ёпиш":"Кассани ёпиш"}</button></div></div>`;}).join("")}
+    ${shifts.length?`<div class="lbl">Охирги ёпилишлар</div><div class="list">${shifts.map(z=>`<div class="row"><div><div class="t">${nice(z.date)} · ${esc(z.by||"—")}</div><div class="m">Керак: ${money(z.expected)} · Санаб топширилди: ${money(z.counted)} ${bchip(z.branch)}</div>${z.note?`<div class="m">${esc(z.note)}</div>`:""}</div><div class="acts" style="flex-direction:column;align-items:flex-end">${diffChip(z.diff)}${delBtn("shifts",z.id)}</div></div>`).join("")}</div>`:""}
+  </section>
+  <section class="panel">
+    <div class="ph"><h2>Ой якуни</h2>${boss()?`<button class="btn2" data-export>Excelга юклаб олиш</button>`:""}<select id="monthSel" aria-label="Ой" style="border:1px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--surface)">${months.map(m=>`<option value="${m}" ${m===monthSel?"selected":""}>${monthName(m)}</option>`).join("")}</select></div>
+    <div class="ledger">
+      <div>Ой бошида кассада бор эди<span class="hint">ўтган ойлардан қолган пул</span></div><div class="r">${money(c.opening)}</div>
+      <div>Жами кирди<span class="hint">${Object.entries(c.incCat).map(([k,v])=>esc(k)+": "+num(v)).join(" · ")||"—"}</span></div><div class="r pos">+${money(c.inc)}</div>
+      <div>Жами сарфланди</div><div class="r neg">−${money(c.out)}</div>
+      ${boss()?`<div>Соф фойда<span class="hint">кирди − сарфланди</span></div><div class="r ${c.net>=0?"pos":"neg"}">${money(c.net)}</div>`:""}
+      <div class="tot">Ой охирида кассада қолди</div><div class="r tot">${money(c.closing)}</div>
+    </div>
+    ${c.checks&&boss()?`<div class="ledger" style="margin-top:6px">
+      <div>«Сотув» орқали сотилган дорилар<span class="hint">${c.checks} та сотув</span></div><div class="r">${money(c.itemRev)}</div>
+      <div>Уларнинг келиш нархи</div><div class="r">${money(c.itemCost)}</div>
+      <div class="tot">Дорилардан устама фойда<span class="hint">сотиш − келиш нархи</span></div><div class="r tot pos">${money(c.itemRev-c.itemCost)}</div></div>`:""}
+  </section>
+  <section class="panel">
+    <div class="ph"><h2>Кунлик ҳисоб</h2><span class="lbl">кунни босинг — ёзувларини кўриб, ўзгартирасиз</span></div>
+    ${c.rows.length?`<div class="tbl"><table><thead><tr><th>Сана</th><th>Кирди</th><th>Сарфланди</th><th>Кун қолдиғи</th><th>Кассада</th></tr></thead><tbody>
+    ${[...c.rows].reverse().map(r=>`<tr data-day="${r.d}" class="${r.d===daySel?"sel":""}"><td>${+r.d.slice(8)} ${wd(r.d)}</td><td class="pos">${r.inc?num(r.inc):"—"}</td><td class="neg">${r.out?num(r.out):"—"}</td><td class="${r.net>=0?"pos":"neg"}">${signed(r.net)}</td><td><b>${num(r.cash)}</b></td></tr>`).join("")}
+    </tbody><tfoot><tr><td>Жами</td><td class="pos">${num(c.inc)}</td><td class="neg">${num(c.out)}</td><td class="${c.net>=0?"pos":"neg"}">${signed(c.net)}</td><td>${num(c.closing)}</td></tr></tfoot></table></div>`
+    :`<div class="empty">${monthName(monthSel)} ойида ҳали ёзув йўқ</div>`}
+    ${daySel&&dayList.length?`<div class="ph" id="dayList"><h2>${nice(daySel)} ёзувлари</h2><button class="x" data-closeday>Ёпиш</button></div><div class="list">${dayList.map(saleRow).join("")}</div>`:""}
+  </section>
+  ${outCats.length?`<section class="panel"><h2>Пул нимага кетди</h2><div class="bars">${outCats.map(([k,v])=>`<div class="bar"><span>${esc(k)}</span><b>${money(v)}</b><div class="track"><i style="width:${(v/maxCat*100).toFixed(1)}%"></i></div></div>`).join("")}</div></section>`:""}`;
+}
+
+function debtRow(d){
+  const l=left(d),p=paid(d),pays=(d.payments||[]),full=view==="debts";
+  let due="";
+  if(d.due){const k=daysTo(d.due);
+    due=l===0?`<span class="dd">${nice(d.due)}</span>`
+      :k<0?`<span class="dd bad">${nice(d.due)} · ${-k} кун ўтди</span>`
+      :k===0?`<span class="dd bad">Бугун</span>`
+      :`<span class="dd ${k<=3?"warn":""}">${nice(d.due)} · ${k} кун қолди</span>`;}
+  else due=`<span class="dd muted">белгиланмаган</span>`;
+  return `<div class="dcard ${l>0&&d.due&&daysTo(d.due)<0?"late":""}">
+    <div class="dtop"><div class="dname">${esc(d.name)}</div><div class="damt ${l?"neg":"pos"}">${l?money(l):"Тўланди ✓"}</div></div>
+    ${d.items?`<div class="m">${esc(d.items)}</div>`:""}
+    <div class="ddates">
+      <div><span class="lbl">Олган куни</span><span class="dd">${nice(d.date)}</span></div>
+      <div><span class="lbl">Қайтариш куни</span>${due}</div>
+    </div>
+    ${p?`<div class="m">Жами ${money(d.amount)} · тўлади ${money(p)}</div>`:""}
+    ${pays.length?`<div class="paylist">Тўловлар: ${pays.map((x,i)=>nice(x.date)+" — "+num(x.amount)+(full?(confirmId===("py:"+d.id+":"+i)?` <button class="x ok" data-delpay="${d.id}" data-i="${i}">ўчирилсинми?</button><button class="x" data-cancel>йўқ</button>`:` <button class="x" data-ask="py:${d.id}:${i}">×</button>`):"")).join(", ")}</div>`:""}
+    <div class="m">${d.phone?esc(d.phone)+" · ":""}${bchip(d.branch)}</div>
+    ${full||l>0?`<div class="dacts">${l>0?`<button class="pay" data-pay="${d.id}">Тўлов</button>`:""}
+      ${full&&l>0&&waNum(d.phone)?`<a class="pay" href="https://wa.me/${waNum(d.phone)}?text=${encodeURIComponent(remindText(d))}" target="_blank" rel="noopener">WhatsApp эслатма</a>`:""}
+      ${full?`<button class="btn2" data-ddebt="${d.id}">+ Яна қарз</button>`+editBtn("debts",d.id)+delBtn("debts",d.id):""}</div>`:""}
+  </div>`;
+}
+function debtsView(){
+  let d=state.debts.filter(inBranch);
+  const all=debtStats();
+  if(debtFilter==="open")d=d.filter(x=>left(x)>0); else if(debtFilter==="paid")d=d.filter(x=>left(x)===0);
+  if(q)d=d.filter(x=>[x.name,x.phone,x.items].join(" ").toLowerCase().includes(q.toLowerCase()));
+  const people={};all.open.forEach(x=>{people[x.name]=(people[x.name]||0)+left(x);});
+  return `<section class="panel">
+    <div class="kpis" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div class="kpi"><span class="lbl">Жами қарз</span><span class="v neg">${money(all.total)}</span></div><div class="kpi"><span class="lbl">Қарздорлар</span><span class="v">${Object.keys(people).length} киши</span></div></div>
+    <div class="tools"><input autocomplete="off" id="search" type="search" placeholder="Исм ёки телефон…" value="${esc(q)}">
+    <select id="debtF" aria-label="Қарзлар"><option value="open">Тўланмаганлар</option><option value="paid" ${debtFilter==="paid"?"selected":""}>Тўланганлар</option><option value="all" ${debtFilter==="all"?"selected":""}>Ҳаммаси</option></select></div>
+    ${q&&d.length?`<div class="sum"><span>Топилганлар бўйича қолган қарз: <b>${money(sum(d.map(x=>({amount:left(x)}))))}</b></span></div>`:""}
+    <div class="list">${d.sort(byDate).map(debtRow).join("")||`<div class="empty">${state.debts.length?"Топилмади":"Қарз дафтари бўш. «+ Қўшиш» → «Қарз» орқали биринчи қарзни ёзинг."}</div>`}</div></section>`;
+}
+
+function orderRow(o){
+  return `<div class="row"><div><div class="t">${esc(o.customer||"Мижоз")}</div>
+   <div class="m">${esc(o.items||"")}</div><div class="m">${nice(o.date)} · ${esc(o.channel||"")}${o.phone?" · "+esc(o.phone):""} ${bchip(o.branch)}</div></div>
+   <div class="acts" style="flex-direction:column;align-items:flex-end"><span class="amt">${money(o.total)}</span>
+   <select class="status" data-status="${o.id}" data-s="${esc(o.status)}" aria-label="Ҳолати">${STATUSES.map(s=>`<option ${s===o.status?"selected":""}>${s}</option>`).join("")}</select>
+   <div class="acts">${editBtn("orders",o.id)}${delBtn("orders",o.id)}</div></div></div>`;
+}
+function ordersView(){
+  let o=state.orders.filter(inBranch);
+  if(orderFilter==="open")o=o.filter(x=>!["Бажарилди","Бекор"].includes(x.status));
+  else if(orderFilter!=="all")o=o.filter(x=>x.status===orderFilter);
+  if(q)o=o.filter(x=>[x.customer,x.phone,x.items].join(" ").toLowerCase().includes(q.toLowerCase()));
+  return `<section class="panel">
+   <div class="tools"><input autocomplete="off" id="search" type="search" placeholder="Исм, телефон ёки дори…" value="${esc(q)}">
+   <select id="ordF" aria-label="Ҳолати"><option value="open">Очиқлари</option><option value="all" ${orderFilter==="all"?"selected":""}>Ҳаммаси</option>${STATUSES.map(s=>`<option ${s===orderFilter?"selected":""}>${s}</option>`).join("")}</select></div>
+   <div class="list">${o.sort(byDate).map(orderRow).join("")||`<div class="empty">Буюртма йўқ</div>`}</div></section>`;
+}
+let prefDebt=null;
+const dig10=s=>String(s||"").replace(/\D/g,"").slice(-10);
+async function ensureCustomer(name,phone,br){name=(name||"").trim();if(!name)return;
+  const c=state.customers.find(x=>(x.name||"").trim().toLowerCase()===name.toLowerCase()||(phone&&x.phone&&dig10(x.phone)===dig10(phone)));
+  if(!c)return addRec("customers",{name,phone:phone||"",branch:br||"",note:""});
+  if(phone&&!c.phone)return updRec("customers",c.id,{phone});}
+function customersView(){
+  let c=state.customers.filter(inBranch);
+  if(q)c=c.filter(x=>[x.name,x.phone,x.note].join(" ").toLowerCase().includes(q.toLowerCase()));
+  const digits=s=>String(s||"").replace(/\D/g,"").slice(-10);
+  return `<section class="panel">
+   <div class="tools"><input autocomplete="off" id="search" type="search" placeholder="Исм ёки телефон…" value="${esc(q)}"></div>
+   <div class="sum"><span>Жами мижоз: <b>${c.length}</b></span></div>
+   <div class="list">${c.sort((a,b)=>(a.name||"").localeCompare(b.name||"")).map(x=>{
+     const same=o=>x.phone&&digits(o.phone)===digits(x.phone);
+     const os=state.orders.filter(o=>same(o)&&o.status!=="Бекор");
+     const debt=sum(state.debts.filter(same).map(d=>({amount:left(d)})));
+     return `<div class="row"><div><div class="t">${esc(x.name)}</div><div class="m">${esc(x.phone||"")} ${bchip(x.branch)}</div>${x.note?`<div class="m">${esc(x.note)}</div>`:""}</div>
+     <div class="acts" style="flex-direction:column;align-items:flex-end"><span class="amt">${os.length} буюртма</span>${debt?`<span class="m neg">қарзи: ${money(debt)}</span>`:""}<div class="acts"><button class="btn2 pri" data-cdebt="${x.id}">+ Қарз</button>${editBtn("customers",x.id)}${delBtn("customers",x.id)}</div></div></div>`;}).join("")||`<div class="empty">Мижоз йўқ. Кимгадир қарз ёзсангиз, исми ва рақами шу ерга ўзи тушади.</div>`}</div></section>`;
+}
+function staffView(){
+  const s=state.staff.filter(inBranch);
+  return `<section class="panel">
+   <div class="acts" style="justify-content:flex-start"><button class="btn2 pri" data-newstaff>+ Ходим қўшиш</button></div>
+   <div class="m" style="font-size:12.5px;color:var(--muted)">Бу ерга қўшилган ходимлар умумий логин билан киргач, рўйхатдан ўз исмини танлайди. Сотувларга уларнинг исми ёзилади.</div>
+   <div class="sum">${BRANCHES.map(b=>`<span>${b}: <b>${state.staff.filter(x=>x.branch===b).length} киши</b></span>`).join("")}<span>Ойликлар жами: <b>${money(sum(s,"salary"))}</b></span></div>
+   <div class="list">${s.sort((a,b)=>(a.name||"").localeCompare(b.name||"")).map(x=>`<div class="row"><div><div class="t">${esc(x.name)}</div><div class="m">${esc(x.role||"")} ${bchip(x.branch)}</div><div class="m">${esc(x.phone||"")}${x.start?" · ишга кирган: "+nice(x.start):""}</div></div>
+   <div class="acts">${x.salary?`<span class="amt">${money(x.salary)}</span>`:""}${editBtn("staff",x.id)}${delBtn("staff",x.id)}</div></div>`).join("")||`<div class="empty">Ходим қўшилмаган</div>`}</div></section>`;
+}
+function pricesView(){
+  const rows=priceRows();
+  const lists=[...state.pricelists.reduce((m,d)=>{const k=d.supplier;const e=m.get(k)||{sup:k,date:d.date,n:0};e.n+=(d.rows||[]).length;if(d.date>e.date)e.date=d.date;m.set(k,e);return m;},new Map()).values()];
+  const loaded=new Map(lists.map(l=>[l.sup,l]));
+  const firms=[...new Set([...state.suppliers.map(x=>x.name),...lists.map(l=>l.sup)])].sort((a,b)=>a.localeCompare(b));
+  let res=[],sugg=[],exact=null;const qn=norm(pq);
+  if(qn){const code=/^\d{6,}$/.test(cleanCode(pq))?cleanCode(pq):"";
+    if(code)res=matchRows(rows,{code}).filter(r=>r.p>0).sort((a,b)=>a.p-b.p);
+    else{const names=allMedNames();exact=names.find(n=>norm(n)===qn)||null;
+      if(exact)res=rows.filter(r=>norm(r.n)===qn&&r.p>0).sort((a,b)=>a.p-b.p);
+      else sugg=names.map(n=>({n,k:norm(n)})).filter(x=>x.k.startsWith(qn)||(" "+x.k).includes(" "+qn)||(qn.length>=3&&x.k.includes(qn)))
+        .sort((a,b)=>(b.k.startsWith(qn)-a.k.startsWith(qn))||a.n.localeCompare(b.n)).slice(0,40)
+        .map(x=>{const pr=rows.filter(r=>norm(r.n)===x.k&&r.p>0).sort((a,b)=>a.p-b.p);return {n:x.n,best:pr[0]||null,cnt:new Set(pr.map(r=>r.sup)).size};});}}
+  const mine=rows.length?state.meds.map(m=>({m,c:cheapestFor(m)})).filter(x=>x.c).sort((a,b)=>((b.m.cost||0)-b.c.p)-((a.m.cost||0)-a.c.p)).slice(0,60):[];
+  const missing=firms.filter(f=>!loaded.has(f));
+  const sampleN=state.pricelists.filter(d=>d.sample).length;
+  return `
+  <section class="panel scan">
+    <label class="lbl" for="pq">Дори номини ёзинг — қайси фирмада арзон</label>
+    <input id="pq" type="search" autocomplete="off" placeholder="масалан: парацетамол" value="${esc(pq)}">
+    ${!qn?`<div class="m" style="font-size:13px;color:var(--muted)">Биринчи ҳарфларини ёзинг, масалан «п» ёки «пар» — шу билан бошланадиган дорилар чиқади.</div>`
+    :sugg.length?`<div class="sugg">${sugg.map(x=>`<button type="button" class="sg" data-pq="${esc(x.n)}"><span class="sgn">${esc(x.n)}</span>${x.best?`<span class="sgp"><b>${num(x.best.p)} ₸</b><small>${esc(x.best.sup)}${x.cnt>1?" · "+x.cnt+" фирма":""}</small></span>`:`<span class="sgp none">нархи йўқ</span>`}</button>`).join("")}</div>`
+    :exact||res.length?`<div class="ph"><h2>${esc(exact||pq)}</h2><button class="x" data-pq="">← Орқага</button></div>
+      ${res.length?`<div class="sum"><span>Энг арзон фирмадан олсангиз, сотиш нархи (+${markupPct()}%): <b>${money(priceFromCost(res[0].p))}</b></span></div>`:""}
+      ${res.length?`<div class="tbl wrap"><table><thead><tr><th>Дори</th><th>Фирма</th><th>Муддати</th><th>Нарх</th><th></th></tr></thead><tbody>${res.map((r,i)=>{const k="pr:"+r.doc+":"+r.n;return `<tr class="${i===0?"pl-best":""}"><td>${esc(r.n)}${r.m?`<div class="m">${esc(r.m)}</div>`:""}</td><td>${esc(r.sup)}${i===0?' <span class="chip paid">энг арзон</span>':""}${r.manual?' <span class="chip sample">қўлда</span>':""}</td><td>${r.e?`<span class="${daysTo(r.e)<0?"neg":daysTo(r.e)<=EXP_WARN?"warnt":""}">${fmtD(r.e)}</span>`:"—"}</td><td><b>${num(r.p)}</b></td>
+      <td style="white-space:nowrap"><button class="x" data-editprice="${esc(r.doc)}" data-n="${esc(r.n)}">Ўзгартириш</button>${confirmId===k?`<button class="x ok" data-delprice="${esc(r.doc)}" data-n="${esc(r.n)}">Ўчирилсинми?</button><button class="x" data-cancel>Йўқ</button>`:`<button class="x" data-ask="${esc(k)}">Ўчириш</button>`}</td></tr>`;}).join("")}</tbody></table></div>
+      ${missing.length?`<div class="m" style="font-size:12px;color:var(--muted)">Прайси юкланмаган фирмалар солиштирилмади: ${missing.map(esc).join(", ")}</div>`:""}`
+    :`<div class="empty">Бу дорининг фирмалардаги нархи ҳали киритилмаган. «+ Нарх қўшиш (қўлда)» орқали қўшинг.</div>`}`
+    :`<div class="empty">«${esc(pq)}» билан бошланадиган дори топилмади.</div>`}
+  </section>
+  <section class="panel">
+    <div class="ph"><h2>Фирмалар прайси</h2><span class="lbl">${lists.length} / ${firms.length} та юкланган</span></div>
+    <div class="list">${firms.map(f=>{const l=loaded.get(f);const sx=state.suppliers.find(z=>z.name===f);const smp=state.pricelists.some(d=>d.supplier===f&&d.sample);
+      return `<div class="fcard">
+        <div class="ftop"><div class="dname">${esc(f)}</div>${sx?`<button class="btn2" data-edit="suppliers" data-id="${sx.id}">Ўзгартириш</button>`:""}</div>
+        ${phoneLine(sx)}
+        <div class="m">${l?`${num(l.n)} та дори · ${nice(l.date)} да юкланган`:'<span class="chip late">прайс юкланмаган</span>'}</div>
+        <div class="dacts"><button class="btn2 ${l?"":"pri"}" data-import="prices" data-sup="${esc(f)}">${l?"Прайсни янгилаш":"Прайс юклаш"}</button>
+          ${l?(confirmId===("pl:"+f)?`<button class="x ok" data-delpl="${esc(f)}">Прайс ўчирилсинми?</button><button class="x" data-cancel>Йўқ</button>`:`<button class="x" data-ask="pl:${esc(f)}">Прайсни ўчириш</button>`):""}</div>
+      </div>`;}).join("")
+      ||`<div class="empty">Фирма йўқ</div>`}</div>
+    <div class="acts" style="justify-content:flex-start"><button class="btn2 pri" data-newsup>+ Фирма қўшиш</button><button class="btn2 pri" data-newprice>+ Нарх қўшиш (қўлда)</button><button class="btn2" data-import="prices">+ Excel прайс</button><button class="btn2 pri" data-bulkpl>Ҳамма прайсни бирданига юклаш</button></div>
+  </section>
+  ${mine.length?`<section class="panel"><div class="ph"><h2>Менинг дориларим: энг арзон фирма</h2><span class="lbl">${mine.length} та топилди</span></div>
+    <div class="list">${mine.map(({m,c})=>`<div class="fcard"><div class="dname" style="white-space:normal">${esc(m.name)}</div>
+      <div class="kv"><div><span class="lbl">Энг арзон фирма</span><b>${esc(c.sup)}</b></div><div><span class="lbl">Фирма нархи</span><b class="pos">${num(c.p)} ₸</b></div><div><span class="lbl">Сиз олган</span><b class="${m.cost&&c.p<m.cost?"neg":""}">${m.cost?num(m.cost)+" ₸":"—"}</b></div></div>
+      <div class="dacts"><button class="btn2" data-editprice="${esc(c.doc)}" data-n="${esc(c.n)}">Фирма нархини ўзгартириш</button><button class="btn2" data-editmed="${esc(m.barcode)}">Дорини ўзгартириш</button></div></div>`).join("")}</div>
+    <div class="m" style="font-size:12px;color:var(--muted)">Қизил — сиз шу дорини энг арзон фирмадан қимматроқ олгансиз.</div></section>`:""}`;
+}
+function suppliersView(){
+  const list=[...state.suppliers].map(x=>({x,st:supStats(x.name)})).sort((a,b)=>b.st.owed-a.st.owed||(a.x.name||"").localeCompare(b.x.name||""));
+  return `<section class="panel">
+    <div class="kpis" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div class="kpi"><span class="lbl">Фирмаларга қарзимиз</span><span class="v neg">${money(supOwedTotal())}</span></div><div class="kpi"><span class="lbl">Таъминотчилар</span><span class="v">${list.length} та</span></div></div>
+    <div class="acts" style="justify-content:flex-start"><button class="btn2 pri" data-newsup>+ Фирма қўшиш</button></div>
+    <div class="list">${list.map(({x,st})=>`<div class="fcard">
+      <div class="ftop"><div class="dname">${esc(x.name)}</div><div class="damt ${st.owed?"neg":"pos"}">${st.owed?money(st.owed):"Қарз йўқ"}</div></div>
+      ${phoneLine(x)}
+      <div class="kv">
+        <div><span class="lbl">Қарзимиз</span><b class="${st.owed?"neg":""}">${money(st.owed)}</b></div>
+        <div><span class="lbl">Жами олинган</span><b>${money(st.bought)}</b></div>
+        <div><span class="lbl">Охирги товар</span><b>${st.last?nice(st.last):"—"}</b></div>
+      </div>
+      ${supOpen===x.id?`<div class="hist"><div class="lbl">Тарих</div>${st.entries.sort(byDate).map(e=>`<div class="hrow"><span>${nice(e.date)} — ${e.type==="pay"?"тўладик":e.paid?"олдик (нақд)":"олдик (қарзга)"} <b>${money(e.amount)}</b>${e.note?`<br><small>${esc(e.note)}</small>`:""}</span><span class="acts">${editBtn("supplies",e.id)}${delBtn("supplies",e.id)}</span></div>`).join("")||`<div class="m">Ёзув йўқ</div>`}
+        <button class="btn2" data-supbuy="${x.id}">+ Қарзга олдик</button></div>`:""}
+      <div class="dacts">${st.owed?`<button class="pay" data-spay="${x.id}">Тўлов</button>`:""}<button class="btn2" data-supopen="${x.id}">${supOpen===x.id?"Тарихни ёпиш":"Тарих"}</button><button class="btn2" data-sadj="${x.id}">Қарзни ўзгартириш</button>${editBtn("suppliers",x.id)}${delBtn("suppliers",x.id)}</div>
+    </div>`).join("")
+    ||`<div class="empty">Таъминотчи йўқ. «+ Қўшиш» → «Таъминотчи», ёки товар киритганда фирма номини ёзинг.</div>`}</div></section>`;
+}
+function reportView(){
+  const t=todayISO();const from=repFrom||t.slice(0,8)+"01",to=repTo||t;const label=fmtD(from)+" — "+fmtD(to);
+  const inP=r=>r.date>=from&&r.date<=to&&inBranch(r);
+  const wo=state.stocklog.filter(e=>e.type==="woff"&&e.date>=from&&e.date<=to&&(branch==="all"||e.branch===branch)).sort(byDate);
+  const docs=[...state.sales.filter(r=>r.type==="in"&&Array.isArray(r.items)&&inP(r)).map(r=>({items:r.items,seller:r.seller,amount:r.amount})),
+              ...state.debts.filter(r=>Array.isArray(r.saleItems)&&inP(r)).map(r=>({items:r.saleItems,seller:r.seller,amount:r.amount}))];
+  const agg={};docs.forEach(d=>d.items.forEach(i=>{const a=agg[i.barcode]=agg[i.barcode]||{name:i.name,qty:0,rev:0,cost:0};a.qty+=i.qty;a.rev+=i.qty*i.price;a.cost+=i.qty*(+i.cost||0);}));
+  const top=Object.values(agg).sort((a,b)=>boss()?(b.rev-b.cost)-(a.rev-a.cost):b.rev-a.rev).slice(0,15);
+  const bySel={};docs.forEach(d=>{const k=d.seller||"кўрсатилмаган";bySel[k]=(bySel[k]||0)+(+d.amount||0);});
+  const since=(()=>{const d=new Date();d.setDate(d.getDate()-60);return iso(d);})();
+  const soldRecently=new Set();[...state.sales.filter(r=>Array.isArray(r.items)&&r.date>=since),...state.debts.filter(r=>Array.isArray(r.saleItems)&&r.date>=since)].forEach(r=>(r.items||r.saleItems).forEach(i=>soldRecently.add(i.barcode)));
+  const slow=state.meds.filter(m=>stockOf(m)>0&&!soldRecently.has(m.barcode)).map(m=>({m,st:stockOf(m),val:stockOf(m)*(+m.cost||0)})).sort((a,b)=>b.val-a.val);
+  const R=sum(top,"rev"),C=sum(top,"cost");
+  return `<section class="panel">
+    <div class="ph"><h2>${boss()?"Энг кўп соф фойда келтирган дорилар":"Энг кўп сотилган дорилар"}</h2><span class="lbl">${label}</span></div>
+    <div class="frow"><div class="f"><label for="repFrom">Қайси санадан</label><input id="repFrom" type="date" value="${from}"></div><div class="f"><label for="repTo">Қайси санагача</label><input id="repTo" type="date" value="${to}"></div></div>
+    ${top.length?`<div class="tbl"><table><thead><tr><th>Дори</th><th>Сони</th><th>Сотув</th>${boss()?"<th>Фойда</th>":""}</tr></thead><tbody>${top.map(a=>`<tr><td style="white-space:normal">${esc(a.name)}</td><td>${num(a.qty)}</td><td>${num(a.rev)}</td>${boss()?`<td class="${a.rev-a.cost>=0?"pos":"neg"}">${num(a.rev-a.cost)}</td>`:""}</tr>`).join("")}</tbody>
+      <tfoot><tr><td>Жами (${label})</td><td>${num(sum(top,"qty"))}</td><td>${num(R)}</td>${boss()?`<td>${num(R-C)}</td>`:""}</tr></tfoot></table></div>`
+    :`<div class="empty">${label} давомида «Сотув» орқали сотилган дори йўқ</div>`}
+  </section>
+  ${wo.length?`<section class="panel"><div class="ph"><h2>Муддати ўтиб ҳисобдан чиқарилган</h2><span class="lbl">${label}</span></div>
+    <div class="sum"><span>Жами зарар: <b class="neg">${money(sum(wo,"loss"))}</b></span><span>${num(wo.reduce((a,e)=>a-(+e.qty||0),0))} дона</span></div>
+    <div class="list">${wo.slice(0,40).map(e=>`<div class="row"><div><div class="t" style="white-space:normal">${esc(e.name)}</div><div class="m">${nice(e.date)} · ${esc(e.note||"")} ${bchip(e.branch)}</div></div><span class="amt out">−${num(-e.qty)} та</span></div>`).join("")}</div></section>`:""}
+  ${Object.keys(bySel).length?`<section class="panel"><h2>Ким қанча сотди (${label})</h2><div class="bars">${Object.entries(bySel).sort((a,b)=>b[1]-a[1]).map(([k,v],_,arr)=>`<div class="bar"><span>${esc(k)}</span><b>${money(v)}</b><div class="track"><i style="width:${(v/arr[0][1]*100).toFixed(1)}%;background:var(--accent)"></i></div></div>`).join("")}</div></section>`:""}
+  <section class="panel"><div class="ph"><h2>Туриб қолган дорилар</h2><span class="lbl">60 кун сотилмаган</span></div>
+    <div class="list">${slow.slice(0,30).map(({m,st,val})=>`<div class="row"><div><div class="t">${esc(m.name)}</div><div class="m">${st} та бор ${expChip(nearestExp(m))}</div></div><span class="amt">${val?money(val):"—"}</span></div>`).join("")||`<div class="empty">Туриб қолган дори йўқ</div>`}</div>
+    ${slow.length?`<div class="sum"><span>Жами туриб қолган товар қиймати: <b>${money(sum(slow,"val"))}</b></span></div>`:""}</section>`;
+}
+function moreSeg(){return `<div class="seg moreseg" role="group" aria-label="Бўлим" style="margin:0">${[["meds","Дорилар"],["money","Касса"],...(boss()?[["prices","Нархлар"]]:[]),["suppliers","Фирмалар"],["report","Ҳисобот"],["orders","Буюртмалар"],["customers","Мижозлар"],["staff","Ходимлар"]].map(([v,l])=>`<button data-v="${v}" aria-pressed="${view===v}">${l}</button>`).join("")}</div>`;}
+
+let remindAuto=false,expAuto=false,expPending=false;
+/* Телефонда клавиатура ўзи чиқмасин: фақат одам катакни босганда чиқади */
+const TOUCH=!!(window.matchMedia&&window.matchMedia("(pointer:coarse)").matches);
+const nearB=b=>b.exp&&daysTo(b.exp)>=0&&daysTo(b.exp)<=EXP_WARN;
+const expRem=()=>state.meds.filter(m=>batchesIn(m).some(b=>nearB(b)&&!b.aside));
+const deadRem=()=>state.meds.filter(m=>batchesIn(m).some(b=>b.exp&&daysTo(b.exp)<0));
+function expBanner(){const n=expRem().length,d=deadRem().length;if(!n&&!d)return "";
+  return `<button type="button" class="rembar exp" data-medlist="${n?"exp":"dead"}">⏰ ${n?`Муддатига ${expMonths()} ойдан кам қолган: <b>${n} та</b> дори`:""}${n&&d?" · ":""}${d?`муддати ўтган: <b>${d} та</b>`:""}<span>Кўриш →</span></button>`;}
+function dueRem(){const t=todayISO();return state.debts.filter(inBranch).filter(d=>left(d)>0&&d.due&&daysTo(d.due)<=3&&!(d.reminded||[]).includes(t)).sort((a,b)=>a.due.localeCompare(b.due));}
+function remLabel(d){const k=daysTo(d.due);return k<0?`<span class="dd bad">${-k} кун ўтди</span>`:k===0?`<span class="dd bad">бугун қайтариш куни</span>`:`<span class="dd warn">${k} кун қолди</span>`;}
+function remBanner(){const r=dueRem();return r.length?`<button type="button" class="rembar" data-remind>🔔 Бугун <b>${r.length} та</b> қарздорга эслатиш керак<span>Кўриш →</span></button>`:"";}
+function render(){
+  EXP_WARN=Math.round(expMonths()*30.44);
+  if(!loaded&&db)return;
+  showLock();
+  const views={zakaz:orderBlock,prices:pricesView,suppliers:suppliersView,report:reportView,home:homeView,sell:sellView,meds:medsView,money:moneyView,debts:debtsView,orders:ordersView,customers:customersView,staff:staffView};
+  const a=document.activeElement,fid=a&&["search","msearch","pq","disc"].includes(a.id)?a.id:null,pos=fid?a.selectionStart:0;
+  $("#main").innerHTML=remBanner()+expBanner()+(MORE.includes(view)?moreSeg():"")+views[view]();
+  if(!remindAuto&&(!lockOn()||validMe())&&!$("#sheetBg")&&dueRem().length){remindAuto=true;let seen=null;const key="shipa_rem_"+todayISO();try{seen=localStorage.getItem(key);localStorage.setItem(key,"1");}catch(e){}if(!seen)setTimeout(()=>{if(!$("#sheetBg"))openSheet("remind");},400);}
+  if(!expAuto&&(!lockOn()||validMe())&&!$("#sheetBg")&&expRem().length){expAuto=true;let seen=null;const key="shipa_exp_"+todayISO();try{seen=localStorage.getItem(key);localStorage.setItem(key,"1");}catch(e){}
+    if(!seen)setTimeout(()=>{if($("#sheetBg")){expPending=true;return;}medListKind="exp";openSheet("medlist");},700);}
+  const ms=document.querySelector(".moreseg [aria-pressed=\"true\"]");if(ms&&ms.scrollIntoView)try{ms.scrollIntoView({block:"nearest",inline:"center"});}catch(e){}
+  if(fid&&!kbClosed){const s=document.getElementById(fid);if(s){s.focus();try{s.setSelectionRange(pos,pos);}catch(e){}}}
+  else if(TOUCH){}
+  else if(view==="prices"&&!$("#sheetBg")&&!(a&&a.closest&&a.closest("#main"))){const x=$("#pq");if(x)x.focus({preventScroll:true});}
+  else if((view==="meds"||view==="sell")&&!$("#sheetBg")&&!(a&&a.closest&&a.closest("#main")&&/^(INPUT|SELECT)$/.test(a.tagName))){const sc=$("#scan");if(sc)sc.focus({preventScroll:true});}
+}
+
+/* ---------- add sheet ---------- */
+let sheetKind="in";
+const KIND_FOR_VIEW={zakaz:"recv",suppliers:"supplier",report:"in",home:"in",sell:"recv",meds:"recv",money:"in",debts:"debt",orders:"order",customers:"customer",staff:"staff"};
+const opt=(arr,sel)=>arr.map(x=>`<option ${x===sel?"selected":""}>${esc(x)}</option>`).join("");
+function branchSel(){return `<div class="f"><label for="f_branch">Филиал</label><select id="f_branch">${opt(BRANCHES,branch==="all"?BRANCHES[0]:branch)}</select></div>`;}
+const dateF=(id="f_date",l="Сана")=>`<div class="f"><label for="${id}">${l}</label><input autocomplete="off" id="${id}" type="date" value="${todayISO()}"></div>`;
+function recvFields(code){
+  const m=code?findMed(code):null;
+  return `<div class="f"><label for="f_code">Штрих-код</label><div class="scanrow"><input id="f_code" inputmode="numeric" autocomplete="off" value="${esc(code||"")}" placeholder="сканер ёки камера билан ўқитинг"><label class="cam"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Камера<input autocomplete="off" type="file" accept="image/*" capture="environment" class="camfile" data-camt="f_code" aria-label="Камера билан штрих-кодни ўқиш"></label><label class="cam gal"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>Галерея<input autocomplete="off" type="file" accept="image/*" class="camfile" data-camt="f_code" aria-label="Галереядан расм танлаш"></label></div></div>
+    <div id="recvInfo">${m?`<div class="sum"><span><b>${esc(m.name)}</b> · ҳозир дорихонада ${stockOf(m,"all")} та</span></div>`:""}</div>
+    <div class="f" ${m?"hidden":""} id="nameWrap"><label for="f_name">Дори номи</label><input autocomplete="off" id="f_name" placeholder="масалан: Парацетамол 500 мг №10"></div>
+    <div class="frow"><div class="f"><label for="f_qty">Нечта келди</label><input autocomplete="off" id="f_qty" type="number" inputmode="numeric" min="1"></div><div class="f"><label for="f_exp">Яроқлилик муддати</label><input autocomplete="off" id="f_exp" type="date"></div></div>
+    <div class="frow"><div class="f"><label for="f_cost">Келиш нархи (1 таси, ₸)</label><input autocomplete="off" id="f_cost" type="number" inputmode="numeric" min="0" value="${m&&m.cost?m.cost:""}"></div><div class="f"><label for="f_price">Сотиш нархи (₸) · +${markupPct()}%</label><input autocomplete="off" id="f_price" type="number" inputmode="numeric" min="0" value="${m?m.price:""}"></div></div>
+    ${branchSel()}
+    <label class="check" id="rxWrap" ${m?"hidden":""}><input autocomplete="off" type="checkbox" id="f_rx"> Рецепт билан бериладиган дори</label>
+    <div class="frow"><div class="f"><label for="f_sup">Таъминотчи (фирма)</label><input id="f_sup" autocomplete="off"></div>
+    <div class="f"><label for="f_paymode">Пули</label><select id="f_paymode"><option value="cash">Кассадан тўланди</option><option value="credit">Фирмага қарзга олинди</option><option value="none">Ҳисобга олинмасин</option></select></div></div>
+    ${pickChips("f_sup",state.suppliers.map(x=>x.name))}
+    <div class="m" style="font-size:12px;color:var(--muted)">Дўкондаги эски товарни биринчи марта киритаётганда «Ҳисобга олинмасин»ни танланг.</div>`;
+}
+function formFields(k){
+  if(k==="recv")return recvFields(prefillCode);
+  if(k==="med"){const m=findMed(editMed);if(!m)return `<div class="empty">Дори топилмади</div>`;
+    return `<div class="f"><label for="f_code">Штрих-код</label><div class="scanrow"><input id="f_code" inputmode="numeric" autocomplete="off" value="${esc(m.barcode)}"><label class="cam"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Камера<input autocomplete="off" type="file" accept="image/*" capture="environment" class="camfile" data-camt="f_code" aria-label="Камера билан штрих-кодни ўқиш"></label><label class="cam gal"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>Галерея<input autocomplete="off" type="file" accept="image/*" class="camfile" data-camt="f_code" aria-label="Галереядан расм танлаш"></label></div></div>
+    <div class="f"><label for="f_name">Дори номи</label><input autocomplete="off" id="f_name" value="${esc(m.name)}"></div>
+    <div class="frow"><div class="f"><label for="f_cost">Келиш нархи (₸)</label><input autocomplete="off" id="f_cost" type="number" inputmode="numeric" min="0" value="${m.cost||""}"></div><div class="f"><label for="f_price">Сотиш нархи (₸) · +${markupPct()}%</label><input autocomplete="off" id="f_price" type="number" inputmode="numeric" min="0" value="${m.price}"></div></div>
+    <div class="f"><label for="f_min">Нечта қолганда огоҳлантирсин</label><input autocomplete="off" id="f_min" type="number" inputmode="numeric" min="0" value="${minOf(m)}"></div>
+    <label class="check"><input autocomplete="off" type="checkbox" id="f_rx" ${m.rx?"checked":""}> Рецепт билан бериладиган дори</label>
+    ${(m.batches||[]).length?`<div class="lbl">Дорихонадаги партиялар (сони ва муддатини тузатиш мумкин)</div>${m.batches.map((b,i)=>`<div class="frow"><div class="f"><label for="f_bq${i}">${esc(b.branch)} · сони</label><input autocomplete="off" id="f_bq${i}" type="number" inputmode="numeric" min="0" value="${b.qty}"></div><div class="f"><label for="f_be${i}">Яроқлилик муддати</label><input id="f_be${i}" type="date" value="${esc(b.exp||"")}"></div></div>`).join("")}`:""}`;}
+  if(k==="move"||k==="count"||k==="ret"){const m=findMed(medFor);if(!m)return `<div class="empty">Дори топилмади</div>`;
+    const info=`<div class="sum"><span><b>${esc(m.name)}</b></span>${BRANCHES.map(b=>`<span>${esc(b)}: <b>${stockOf(m,b)} та</b></span>`).join("")}</div>`;
+    const defBr=branch==="all"?BRANCHES[0]:branch;
+    if(k==="move")return info+`<div class="frow"><div class="f"><label for="f_from">Қаердан</label><select id="f_from">${opt(BRANCHES,defBr)}</select></div><div class="f"><label for="f_to">Қаерга</label><select id="f_to">${opt(BRANCHES,BRANCHES.find(b=>b!==defBr))}</select></div></div>
+      <div class="f"><label for="f_qty">Нечта</label><input autocomplete="off" id="f_qty" type="number" inputmode="numeric" min="1"></div>`;
+    if(k==="count")return info+`<div class="frow">${branchSel()}<div class="f"><label for="f_qty">Жавонда санаб чиқилди</label><input autocomplete="off" id="f_qty" type="number" inputmode="numeric" min="0"></div></div>
+      <div class="f"><label for="f_exp">Ортиқча чиқса, яроқлилик муддати</label><input autocomplete="off" id="f_exp" type="date" value="${nearestExp(m,"all")}"></div>`;
+    return info+`<div class="frow">${branchSel()}<div class="f"><label for="f_qty">Нечта қайтарди</label><input autocomplete="off" id="f_qty" type="number" inputmode="numeric" min="1" value="1"></div></div>
+      <div class="frow"><div class="f"><label for="f_amount">Мижозга қайтарилган пул (₸)</label><input autocomplete="off" id="f_amount" type="number" inputmode="numeric" min="0" value="${m.price}"></div><div class="f"><label for="f_exp">Яроқлилик муддати</label><input autocomplete="off" id="f_exp" type="date" value="${nearestExp(m,"all")}"></div></div>
+      <label class="check"><input autocomplete="off" type="checkbox" id="f_tocash" checked> Пул кассадан берилди — чиқим қилиб ёзилсин</label>`;}
+  if(k==="import")return importFields();
+  if(k==="bulkpl")return bulkFields();
+  if(k==="medlist"){const L=medsByKind(medListKind);
+    return `<div class="lbl">${MLT[medListKind]} — ${L.length} та${branch==="all"?"":" · "+esc(branch)}</div>
+    ${medListKind==="dead"&&L.length?(()=>{const tl=L.reduce((a,m)=>a+deadIn(m).reduce((x,b)=>x+bLoss(m,b),0),0);return `<div class="sum"><span>Жами зарар (келиш нархида): <b class="neg">${money(tl)}</b></span></div>
+      <div class="acts" style="justify-content:flex-start">${confirmId==="woall"?`<button type="button" class="x ok" data-woffall>Ҳа, ҳаммасини чиқариш</button><button type="button" class="x" data-cancelml>Йўқ</button>`:`<button type="button" class="btn2 pri" data-woffall>Ҳаммасини ҳисобдан чиқариш</button>`}</div>
+      <div class="m" style="font-size:12px;color:var(--muted)">Ҳисобдан чиқарилган дори қолдиқдан олиб ташланади, зарари «Ҳисобот»да кўринади. Кассага тегмайди.</div>`;})():""}
+    ${medListKind==="exp"?`<div class="m" style="font-size:12.5px">Муддати <b>${expMonths()} ой</b> ичида тугайдиган дорилар (${nice(iso(new Date(Date.now()+EXP_WARN*864e5)))} гача). Шуларни ажратиб қўйинг.</div>
+      ${boss()?`<div class="frow" style="align-items:flex-end"><div class="f"><label for="f_expm">Неча ой олдин огоҳлантирсин</label><input id="f_expm" type="number" inputmode="numeric" min="1" max="24" value="${expMonths()}"></div><button type="button" class="btn2 pri" data-saveexpm>Сақлаш</button></div>`:""}`:""}
+    ${medListKind==="low"?`<div class="m" style="font-size:12.5px">«Кам» чегарасини ҳар бир дорининг «Ўзгартириш» ичидаги «Нечта қолганда огоҳлантирсин» катагидан ўзгартирасиз.</div>`:""}
+    <div class="list">${L.map(m=>{const st=stockOf(m);const bt=batchesIn(m).filter(b=>medListKind==="low"||(b.exp&&(medListKind==="dead"?daysTo(b.exp)<0:daysTo(b.exp)>=0&&daysTo(b.exp)<=EXP_WARN)));
+      return `<div class="mrow"><div class="mrt"><b>${esc(m.name)}</b><span class="${st<=minOf(m)?"neg":""}">${st} та</span></div>
+      <div class="m">${medListKind==="low"?`Қорабулоқ: ${stockOf(m,BRANCHES[0])} та · Қожақўрғон: ${stockOf(m,BRANCHES[1])} та · чегара: ${minOf(m)} та`:bt.map(b=>`${esc(b.branch)}: ${b.qty} та — ${expChip(b.exp)}${medListKind==="dead"?` · зарар ${num(bLoss(m,b))} ₸`:""}${medListKind==="exp"&&b.aside?' <span class="chip paid">ажратилган ✓</span>':""}`).join("<br>")}</div>
+      <div class="dacts"><button type="button" class="btn2" data-editmed="${esc(m.barcode)}">Ўзгартириш</button>${medListKind==="low"?`<button type="button" class="btn2" data-recv="${esc(m.barcode)}">Товар келди</button>`:""}${medListKind==="exp"&&batchesIn(m).some(b=>nearB(b)&&!b.aside)?`<button type="button" class="btn2 pri" data-aside="${m.id}">Ажратдим ✓</button>`:""}${medListKind==="dead"?(confirmId==="wo:"+m.id?`<button type="button" class="x ok" data-woff="${m.id}">Ҳисобдан чиқарилсинми?</button><button type="button" class="x" data-cancelml>Йўқ</button>`:`<button type="button" class="btn2" data-askwo="${m.id}">Ҳисобдан чиқариш</button>`):""}</div></div>`;}).join("")||`<div class="empty">Бундай дори йўқ</div>`}</div>`;}
+  if(k==="markup"){const n=state.meds.filter(m=>+m.cost>0).length;
+    return `<div class="m" style="font-size:13.5px">Сотиш нархи = келиш нархи + устама. Иккала дорихона учун бир хил. Ҳозир: <b>${markupPct()}%</b></div>
+    <div class="f"><label for="f_pct">Устама фоизи (%)</label><input id="f_pct" type="number" inputmode="decimal" min="0" max="500" step="0.5" value="${markupPct()}"></div>
+    <div class="m" id="pctEx" style="font-size:13px;color:var(--muted)">Масалан: 1 000 ₸ лик дори → ${money(priceFromCost(1000))}</div>
+    ${(()=>{const mm=state.meds.filter(m=>+m.cost>0&&priceFromCost(+m.cost)!==+m.price).length;return mm?`<div class="notice"><span>${mm} та дорининг сотиш нархи ${markupPct()}% га мос эмас (эски фоизда ёки қўлда ўзгартирилган). «Сақлаш»ни боссангиз, тўғриланади.</span></div>`:`<div class="m" style="font-size:13px;color:var(--good)">✓ Ҳамма дорилар нархи ${markupPct()}% бўйича ҳисобланган</div>`;})()}
+    <label class="check"><input type="checkbox" id="f_reprice" checked> Дорихонадаги ${n} та дорининг сотиш нархини янги фоиз бўйича қайта ҳисоблаш</label>
+    <div class="m" style="font-size:12px;color:var(--muted)">Белгини олиб ташласангиз, фақат янги келадиган дориларга қўлланади. Нархлар 5 ₸ гача юқорига яхлитланади.</div>`;}
+  if(k==="pin"){const us=userList(),sh=sharedAcc();
+    return `<div class="lbl">Ходимлар учун умумий логин</div>
+    <div class="m" style="font-size:13px">${sh?`Ҳозирги логин: <b>${esc(sh.login)}</b>. Паролни ёки логинни алмаштириш учун янгисини ёзинг.`:"Ҳали ўрнатилмаган. Ҳамма ходимлар шу битта логин ва парол билан киради."}</div>
+    <div class="f"><label for="s_login">Логин</label><input id="s_login" autocapitalize="none" value="${esc(sh?sh.login:"")}" placeholder="масалан: шипа ёки shipa"></div>
+    <div class="frow"><div class="f"><label for="s_pw">Янги парол</label><input id="s_pw" type="password"></div><div class="f"><label for="s_pw2">Паролни такрорланг</label><input id="s_pw2" type="password"></div></div>
+    <div class="m" style="font-size:12.5px;color:var(--muted)">Ходимларни <b>Меню → Ходимлар</b> бўлимида исми, телефони ва филиали билан ўзингиз киритасиз. Улар умумий логин билан киргач, рўйхатдан ўз исмини танлайди.</div>
+    <div class="lbl" style="margin-top:8px">Раҳбарлар (умумий логинни ўзгартира олади)</div>
+    ${us.length?`<div class="list">${us.map(u=>`<div class="row"><div><div class="t">${esc(u.name||u.login)}</div><div class="m">логин: <b>${esc(u.login)}</b></div></div>
+      <div class="acts">${us.length>1?(confirmId===("us:"+u.login)?`<button type="button" class="x ok" data-deluser="${esc(u.login)}">Ўчирилсинми?</button><button type="button" class="x" data-cancel>Йўқ</button>`:`<button type="button" class="x" data-ask="us:${esc(u.login)}">Ўчириш</button>`):""}</div></div>`).join("")}</div>`:`<div class="m" style="font-size:13px">Аввал ўзингизни раҳбар қилиб қўшинг.</div>`}
+    <div class="frow"><div class="f"><label for="f_uname">Раҳбар исми</label><input id="f_uname"></div><div class="f"><label for="f_login">Раҳбар логини</label><input id="f_login" autocapitalize="none" placeholder="масалан: Солиҳ"></div></div>
+    <div class="frow"><div class="f"><label for="f_pin">Парол</label><input id="f_pin" type="password"></div><div class="f"><label for="f_pin2">Паролни такрорланг</label><input id="f_pin2" type="password"></div></div>
+    <div class="m" style="font-size:12px;color:var(--muted)">Бор раҳбарнинг логинини қайта ёзсангиз, унинг пароли алмашади. Керак бўлган қисмини тўлдириб, «Сақлаш»ни босинг.</div>`;}
+  if(k==="price"){const r=editPrice;const sups=state.suppliers.map(x=>x.name);
+    return `<div class="f"><label for="f_sup">Фирма</label><input id="f_sup" autocomplete="off" value="${esc(r?r.sup:"")}"></div>${pickChips("f_sup",state.suppliers.map(x=>x.name))}
+    <div class="f"><label for="f_name">Дори номи</label><input autocomplete="off" id="f_name" value="${esc(r?r.n:"")}" placeholder="масалан: Парацетамол 500 мг №10"></div>
+    <div class="frow"><div class="f"><label for="f_price">Нархи (₸)</label><input autocomplete="off" id="f_price" type="number" inputmode="decimal" min="0" value="${r?r.p:""}"></div><div class="f"><label for="f_pexp">Яроқлилик муддати</label><input id="f_pexp" type="date" value="${esc(r&&r.e?r.e:"")}"></div><div class="f"><label for="f_code">Штрих-код (бўлса)</label><input autocomplete="off" id="f_code" inputmode="numeric" value="${esc(r?r.b:"")}"></div></div>`;}
+  if(k==="supbuy"){const x=state.suppliers.find(z=>z.id===payFor);
+    return `<div class="sum"><span><b>${esc(x?x.name:"")}</b></span></div>
+    <div class="frow"><div class="f"><label for="f_amount">Сумма (₸)</label><input autocomplete="off" id="f_amount" type="number" inputmode="numeric" min="0"></div>${dateF()}</div>
+    <div class="frow">${branchSel()}<div class="f"><label for="f_paymode">Пули</label><select id="f_paymode"><option value="credit">Қарзга олинди</option><option value="cash" ${editRec&&editRec.col==="supplies"&&(state.supplies.find(z=>z.id===editRec.id)||{}).paid?"selected":""}>Кассадан тўланди</option></select></div></div>
+    <div class="f"><label for="f_note">Нима олинди</label><input autocomplete="off" id="f_note"></div>`;}
+  if(k==="supplier")return `<div class="frow"><div class="f"><label for="f_name">Фирма номи</label><input autocomplete="off" id="f_name"></div><div class="f"><label for="f_phone">Телефон</label><input autocomplete="off" id="f_phone" type="tel"></div></div>
+    <div class="f"><label for="f_note">Изоҳ</label><input autocomplete="off" id="f_note" placeholder="масалан: агент исми, қайси кунлари келади"></div>`;
+  if(k==="spay"){const x=state.suppliers.find(z=>z.id===payFor);if(!x)return `<div class="empty">Топилмади</div>`;const st=supStats(x.name);
+    return `<div class="sum"><span><b>${esc(x.name)}</b> — қарзимиз: <b class="neg">${money(st.owed)}</b></span></div>
+    <div class="frow"><div class="f"><label for="f_amount">Қанча тўладик (₸)</label><input autocomplete="off" id="f_amount" type="number" inputmode="numeric" min="0" value="${st.owed}"></div>${dateF()}</div>
+    ${branchSel()}${editRec?"":`<label class="check"><input autocomplete="off" type="checkbox" id="f_tocash" checked> Кассадан берилди — чиқим қилиб ёзилсин</label>`}`;}
+  if(k==="remind"){const r=dueRem();if(!r.length)return `<div class="empty">Бугун эслатиш керак бўлган қарздор қолмади ✓</div>`;
+    return `<div class="m">Қайтариш кунига 3 кун ёки ундан кам қолган ёхуд муддати ўтган қарздорлар. Тугмани боссангиз, WhatsApp тайёр матн билан очилади — «Юбориш»ни босинг.</div>
+    <div class="list">${r.map(d=>`<div class="dcard"><div class="dtop"><div class="dname">${esc(d.name)}</div><div class="damt neg">${money(left(d))}</div></div>
+      <div class="m">Қайтариш куни: ${nice(d.due)} · ${remLabel(d)} ${bchip(d.branch)}</div>${d.phone?`<div class="m">📞 ${esc(d.phone)}</div>`:`<div class="m neg">Телефон рақами ёзилмаган</div>`}
+      <div class="dacts">${waNum(d.phone)?`<a class="wa" data-remwa="${d.id}" href="https://wa.me/${waNum(d.phone)}?text=${encodeURIComponent(remindText(d))}" target="_blank" rel="noopener">WhatsApp'да эслатиш</a>`:""}<button type="button" class="btn2" data-remdone="${d.id}">Эслатдим ✓</button></div></div>`).join("")}</div>`;}
+  if(k==="sadj"){const x=state.suppliers.find(z=>z.id===payFor);if(!x)return `<div class="empty">Топилмади</div>`;const st=supStats(x.name);
+    return `<div class="sum"><span><b>${esc(x.name)}</b> — ҳозир қарзимиз: <b class="neg">${money(st.owed)}</b></span></div>
+    <div class="frow"><div class="f"><label for="f_amount">Тўғри қарз қанча (₸)</label><input autocomplete="off" id="f_amount" type="number" inputmode="numeric" min="0" value="${st.owed}"></div>${dateF()}</div>
+    <div class="f"><label for="f_note">Изоҳ</label><input autocomplete="off" id="f_note" placeholder="масалан: фирма билан солиштирдик"></div>
+    <div class="m" style="font-size:12px;color:var(--muted)">Фарқи «Тарих»га ёзилади. Кассага тегмайди.</div>`;}
+  if(k==="close"){const x=shiftCalc(closeBr,todayISO());
+    return `<div class="sum"><span>${bchip(closeBr)}</span>${Object.entries(x.byPay).filter(([k,v])=>v).map(([k,v])=>`<span>${esc(k)}: <b>${money(v)}</b></span>`).join("")}<span>Жами кирим: <b>${money(x.cashIn+x.cardIn)}</b></span><span>Чиқим: <b>${money(x.out)}</b></span></div>
+    <div class="sum"><span>Кассада бўлиши керак (ҳамма тур): <b>${money(x.expected)}</b></span></div>
+    <div class="f"><label for="f_counted">Санаб чиқилган нақд пул (₸)</label><input autocomplete="off" id="f_counted" type="number" inputmode="numeric" min="0"></div>
+    <div class="f"><label for="f_by">Ким топширди</label><input id="f_by" autocomplete="off" value="${esc(seller)}"></div>
+    ${pickChips("f_by",state.staff.filter(z=>z.branch===closeBr).map(z=>z.name))}
+    <div class="f"><label for="f_note">Изоҳ</label><input autocomplete="off" id="f_note" placeholder="масалан: камомад сабаби"></div>`;}
+  if(k==="med"&&false)return"";
+  if(k==="in"||k==="out")return `<div class="frow"><div class="f"><label for="f_amount">Сумма (₸)</label><input autocomplete="off" id="f_amount" type="number" inputmode="numeric" min="0" placeholder="0"></div>${dateF()}</div>
+    <div class="frow"><div class="f"><label for="f_cat">${k==="in"?"Пул қаердан":"Нимага сарфланди"}</label><select id="f_cat">${opt(k==="in"?INCOME_CATS:EXPENSE_CATS)}</select></div>${branchSel()}</div>
+    <div class="f"><label for="f_note">Изоҳ</label><input autocomplete="off" id="f_note" placeholder="${k==="in"?"масалан: кунлик касса":"масалан: фирмадан дори"}"></div>`;
+  if(k==="debt")return `<div class="frow"><div class="f"><label for="f_name">Ким олди</label><input id="f_name" autocomplete="off"></div><div class="f"><label for="f_phone">Телефон</label><input autocomplete="off" id="f_phone" type="tel"></div></div>
+    ${pickChips("f_name",state.customers.map(c=>c.name))}
+    <div class="f"><label for="f_items">Нима олди</label><input autocomplete="off" id="f_items" placeholder="масалан: дорилар, 3 хил"></div>
+    <div class="frow"><div class="f"><label for="f_amount">Қарз суммаси (₸)</label><input autocomplete="off" id="f_amount" type="number" inputmode="numeric" min="0"></div>${dateF()}</div>
+    <div class="frow"><div class="f"><label for="f_due">Қачон қайтаради</label><input autocomplete="off" id="f_due" type="date"></div>${branchSel()}</div>`;
+  if(k==="pay"){const d=state.debts.find(x=>x.id===payFor);if(!d)return `<div class="empty">Қарз топилмади</div>`;
+    return `<div class="sum"><span><b>${esc(d.name)}</b> — қолган қарз: <b class="neg">${money(left(d))}</b></span></div>
+    <div class="frow"><div class="f"><label for="f_amount">Қанча тўлади (₸)</label><input autocomplete="off" id="f_amount" type="number" inputmode="numeric" min="0" value="${left(d)}"></div>${dateF()}</div>
+    <label class="check"><input autocomplete="off" type="checkbox" id="f_tocash" checked> Кассага кирим қилиб ёзилсин</label>`;}
+  if(k==="order")return `<div class="frow"><div class="f"><label for="f_customer">Мижоз исми</label><input autocomplete="off" id="f_customer"></div><div class="f"><label for="f_phone">Телефон</label><input autocomplete="off" id="f_phone" type="tel"></div></div>
+    <div class="f"><label for="f_items">Дорилар / буюртма</label><textarea id="f_items" rows="2"></textarea></div>
+    <div class="frow"><div class="f"><label for="f_total">Сумма (₸)</label><input autocomplete="off" id="f_total" type="number" inputmode="numeric" min="0"></div><div class="f"><label for="f_channel">Қаердан</label><select id="f_channel">${opt(CHANNELS)}</select></div></div>
+    <div class="frow">${branchSel()}${dateF()}</div>`;
+  if(k==="customer")return `<div class="frow"><div class="f"><label for="f_name">Исм фамилия</label><input autocomplete="off" id="f_name"></div><div class="f"><label for="f_phone">Телефон</label><input autocomplete="off" id="f_phone" type="tel"></div></div>
+    ${branchSel()}<div class="f"><label for="f_note">Изоҳ</label><input autocomplete="off" id="f_note"></div>`;
+  return `<div class="frow"><div class="f"><label for="f_name">Исм фамилия</label><input autocomplete="off" id="f_name"></div><div class="f"><label for="f_role">Лавозими</label><input autocomplete="off" id="f_role" placeholder="Фармацевт, кассир…"></div></div>
+    <div class="frow">${branchSel()}<div class="f"><label for="f_phone">Телефон</label><input autocomplete="off" id="f_phone" type="tel"></div></div>
+    <div class="frow"><div class="f"><label for="f_salary">Ойлик (₸)</label><input autocomplete="off" id="f_salary" type="number" inputmode="numeric" min="0"></div><div class="f"><label for="f_start">Ишга кирган сана</label><input autocomplete="off" id="f_start" type="date"></div></div>`;
+}
+const KINDS=[["recv","Товар келди"],["supplier","Таъминотчи"],["price","Фирма нархи"],["in","Кирим"],["out","Чиқим"],["debt","Қарз"],["order","Буюртма"],["customer","Мижоз"],["staff","Ходим"]];
+const TITLES={bulkpl:"Ҳамма прайсни бирданига юклаш",remind:"Бугун эслатиш керак",sadj:"Қарзни қўлда ўзгартириш",medlist:"Дорилар",markup:"Устама фоизи",pin:"Логин ва пароллар",supbuy:"Фирмадан қарзга олдик",pay:"Қарз тўлови",med:"Дорини ўзгартириш",spay:"Таъминотчига тўлов",close:"Кассани ёпиш",move:"Филиалга кўчириш",count:"Санаш (инвентаризация)",ret:"Мижоз дорини қайтарди",import:"Excel файлни юклаш"};
+function openSheet(k){
+  sheetKind=k||KIND_FOR_VIEW[view];
+  const fixed=!!editRec||!!editPrice||["bulkpl","remind","sadj","medlist","markup","pin","supbuy","pay","med","spay","close","move","count","ret","import"].includes(sheetKind);
+  $("#sheetHost").innerHTML=`<div class="sheet-bg" id="sheetBg"><form class="sheet" id="sheet" novalidate>
+    <h2>${editRec?"Ўзгартириш":TITLES[sheetKind]||"Янги ёзув"}</h2>
+    ${fixed?"":`<div class="kinds">${KINDS.filter(([v])=>boss()||v!=="price").map(([v,l])=>`<button type="button" data-kind="${v}" aria-pressed="${v===sheetKind}">${l}</button>`).join("")}</div>`}
+    <div id="fields" style="display:flex;flex-direction:column;gap:10px">${formFields(sheetKind)}</div>
+    <div class="err" id="ferr" hidden></div>
+    <div class="btns">${["medlist","remind"].includes(sheetKind)?"":`<button type="button" data-close>Бекор</button>`}<button type="submit" class="add" id="saveBtn">${sheetKind==="import"||sheetKind==="bulkpl"?"Юклаш":sheetKind==="remind"?"Тайёр":sheetKind==="medlist"?"Ёпиш":"Сақлаш"}</button></div></form></div>`;
+  if(editRec)fillForm();
+  if(sheetKind==="recv"&&prefillCode)try{refreshRecv();}catch(e){}
+  if(sheetKind==="debt"&&prefDebt){const P=prefDebt;prefDebt=null;const set=(id,v)=>{const e=document.getElementById(id);if(e&&v)e.value=v;};set("f_name",P.name);set("f_phone",P.phone);
+    const b=document.getElementById("f_branch");if(b&&P.branch&&[...b.options].some(o=>o.value===P.branch))b.value=P.branch;const a=document.getElementById("f_amount");if(a){a.focus();return;}}
+  let first=$("#fields input");
+  if(sheetKind==="recv"&&prefillCode)first=findMed(prefillCode)?$("#f_qty"):$("#f_name");
+  if(first&&!TOUCH)first.focus();
+}
+function closeSheet(){if(importing)return;if(expPending&&sheetKind==="remind"){expPending=false;setTimeout(()=>{medListKind="exp";openSheet("medlist");},350);}editPrice=null;if(sheetKind!=="med")medListKind=null;$("#sheetHost").innerHTML="";editMed=null;prefillCode="";editRec=null;imp=null;if(view==="meds"||view==="sell")render();}
+function refreshRecv(){
+  const m=findMed(val("f_code"));
+  $("#recvInfo").innerHTML=m?`<div class="sum"><span><b>${esc(m.name)}</b> · ҳозир дорихонада ${stockOf(m,"all")} та</span></div>`:(val("f_code")?`<div class="sum"><span>Янги дори — номини ёзинг</span></div>`:"");
+  $("#nameWrap").hidden=!!m;$("#rxWrap").hidden=!!m;
+  if(m){if(!val("f_price"))$("#f_price").value=m.price;if(!val("f_cost")&&m.cost)$("#f_cost").value=m.cost;}
+  else if(val("f_code")){const code=cleanCode(val("f_code"));const hits=priceRows().filter(r=>r.b&&cleanCode(r.b)===code&&r.p>0).sort((a,b)=>a.p-b.p);
+    if(hits.length){const h=hits[0];if(!val("f_name"))$("#f_name").value=h.n;if(!val("f_cost"))$("#f_cost").value=h.p;if(!val("f_price"))$("#f_price").value=priceFromCost(h.p);if(!val("f_sup"))$("#f_sup").value=h.sup;
+      $("#recvInfo").innerHTML=`<div class="sum"><span>Прайсдан топилди: <b>${esc(h.n)}</b> · энг арзони <span class="cheap">${esc(h.sup)} — ${money(h.p)}</span></span></div>`;}}
+  const ex=$("#f_exp");if(ex&&val("f_code")&&(!ex.value||ex.dataset.auto==="1")){const c=cleanCode(val("f_code")),sup=(val("f_sup")||"").trim().toLowerCase();
+    const hits=priceRows().filter(r=>r.b&&cleanCode(r.b)===c&&r.p>0&&r.e).sort((a,b)=>a.p-b.p);const h=(sup&&hits.find(x=>x.sup.toLowerCase()===sup))||hits[0];
+    if(h){ex.value=h.e;ex.dataset.auto="1";const ri=$("#recvInfo");if(ri)ri.insertAdjacentHTML("beforeend",`<div class="m" style="font-size:12.5px">Муддати прайсдан ёзилди: <b>${nice(h.e)}</b> (${esc(h.sup)}). Қутидагидан фарқ қилса, тузатинг.</div>`);}}
+}
+const IMPF={prices:[["n","Дори номи",1],["p","Нархи",1],["b","Штрих-код",0],["m","Ишлаб чиқарувчи",0],["e","Яроқлилик муддати",0]],
+  meds:[["b","Штрих-код",1],["n","Дори номи",1],["p","Сотиш нархи",1],["c","Келиш нархи",0],["q","Сони (дорихонада)",0],["e","Яроқлилик муддати",0]]};
+const GUESS={n:/наимен|назв|товар|препарат|номи|номен|name/i,p:/цена.*(розн|прод)|розн|сотиш|^цена|цена|нарх|price/i,c:/закуп|оптов|келиш|cost/i,b:/штрих|barcode|ean|шк\b/i,m:/производ|изготов|ишлаб|завод|maker/i,q:/кол|остат|сони|qty|кол-во/i,e:/срок|годн|муддат|exp/i};
+function importFields(){
+  const t=imp&&imp.target||"prices";
+  const ic={cam:'<svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',gal:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>',file:'<svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 13h6M9 17h6"/></svg>'};
+  return `<div class="lbl">${t==="prices"?"Фирманинг прайси ёки накладнойи":"Дорилар рўйхати"}</div>
+    <div class="impbtns">
+      ${window.claude&&window.claude.use?`<label class="cam ib">${ic.cam}<span>Камера</span><input type="file" accept="image/*" capture="environment" class="camfile impfile" data-k="img" aria-label="Камера билан расмга олиш"></label>
+      <label class="cam gal ib">${ic.gal}<span>Галерея</span><input type="file" accept="image/*" multiple class="camfile impfile" data-k="img" aria-label="Галереядан расм танлаш"></label>`:""}
+      <label class="cam gal ib">${ic.file}<span>Файл</span><input type="file" accept=".xlsx,.xls,.csv" class="camfile impfile" data-k="xls" aria-label="Excel файл танлаш"></label>
+    </div>
+    <div class="m" style="font-size:12px;color:var(--muted)">Расм (прайс, накладной) бўлса — Claude ўқиб жадвалга айлантиради, кейин текшириб сақлайсиз. Excel бўлса — тўғридан-тўғри ўқилади.</div>
+    <div id="impBody">${impBody()}</div><div class="m" id="impProg" style="font-size:13px"></div>`;
+}
+async function readImportPhotos(files){
+  const prog=$("#impProg");files=[...files];
+  let sm=null;try{sm=window.claude&&window.claude.use?await window.claude.use("sample"):null;}catch(e){}
+  if(!sm){prog.textContent="Расмдан ўқиш бу ерда ишламайди. Excel файл юкланг ёки нархни қўлда киритинг.";return;}
+  let lim=null;try{lim=await sm.limits();}catch(e){}
+  if(!lim||!lim.images){prog.textContent="Бу ерда расм юбориб бўлмайди. Excel файл юкланг.";return;}
+  files=files.filter(f=>!lim.images.mediaTypes.length||lim.images.mediaTypes.includes(f.type)).slice(0,lim.images.maxCount);
+  if(!files.length){prog.textContent="Бу турдаги расм қабул қилинмайди (JPG ёки PNG бўлсин).";return;}
+  const isP=imp.target==="prices";
+  const instr=isP
+    ?`На фото — прайс-лист или накладная от фармацевтического дистрибьютора в Казахстане. Извлеки КАЖДУЮ строку товара. Верни только JSON: {"supplier":"название фирмы-поставщика, если видно, иначе пусто","rows":[{"name":"наименование с формой и дозировкой как написано","price":число — цена за 1 упаковку в тенге,"barcode":"штрих-код если есть, иначе пусто","maker":"производитель если есть","exp":"срок годности ГГГГ-ММ-ДД если указан, иначе пусто"}]}. Не выдумывай: если цену или название не прочитать — пропусти строку. Без комментариев.`
+    :`На фото — список лекарств или накладная аптеки. Извлеки КАЖДУЮ строку. Верни только JSON: {"rows":[{"barcode":"штрих-код или пусто","name":"наименование","price":розничная цена за упаковку или 0,"cost":закупочная цена за упаковку или 0,"qty":количество или 0,"exp":"срок годности ГГГГ-ММ-ДД или пусто"}]}. Не выдумывай: нечитаемое пропусти. Без комментариев.`;
+  prog.textContent="Claude расмни ўқимоқда… (30–90 сония)";
+  try{
+    const out=await sm.json(instr,{images:files,modelTier:"default",onText:()=>{prog.textContent="Claude расмни ўқимоқда… ёзяпти";}});
+    const rows=(out&&Array.isArray(out.rows)?out.rows:[]).filter(r=>r&&r.name);
+    if(!rows.length){prog.textContent="Расмдан бирорта қатор ўқилмади. Тиниқроқ, ёруғда ва тўғри расмга олинг.";return;}
+    if(isP){imp.rows=[["Наименование","Цена","Штрих-код","Производитель","Срок годности"],...rows.map(r=>[r.name,r.price,r.barcode||"",r.maker||"",r.exp||""])];imp.map={n:0,p:1,b:2,m:3,e:4};if(out.supplier&&!imp.sup)imp.sup=String(out.supplier).slice(0,60);}
+    else{imp.rows=[["Штрих-код","Наименование","Цена розн","Цена закуп","Кол-во","Срок годности"],...rows.map(r=>[r.barcode||"",r.name,r.price||0,r.cost||0,r.qty||0,r.exp||""])];imp.map={b:0,n:1,p:2,c:3,q:4,e:5};}
+    imp.h=0;imp.sheet="Расмдан";$("#impBody").innerHTML=impBody();
+    prog.textContent=`${rows.length} та қатор ўқилди. Пастдаги биринчи қаторларни текширинг, кейин «Юклаш»ни босинг.`;
+  }catch(e){const c=e&&e.code;prog.textContent=c==="not_granted"?"Рухсат берилмади. Расмдан ўқиш учун Claude'га рухсат беринг.":c==="rate_limited"?"Кўп сўров бўлди, бир оздан кейин қайта уриниб кўринг.":c==="image_rejected"?"Расм қабул қилинмади (жуда катта ёки бошқа формат).":"Расмни ўқиб бўлмади. Қайта уриниб кўринг ёки Excel юкланг.";}
+}
+function impBody(){
+  if(!imp||!imp.rows)return `<div class="m" style="font-size:12.5px;color:var(--muted)">${imp&&imp.target==="meds"?"Файлда камида штрих-код, ном ва нарх устунлари бўлсин.":"Файлда камида дори номи ва нарх устунлари бўлсин. Штрих-код бўлса, солиштириш аниқроқ бўлади."}</div>`;
+  const hdr=imp.rows[imp.h]||[],cols=hdr.map((x,i)=>({i,l:String(x??"").trim()||("Устун "+(i+1))}));
+  const F=IMPF[imp.target];
+  const sel=(k,l,req)=>`<div class="f"><label for="map_${k}">${l}${req?" *":""}</label><select id="map_${k}"><option value="-1">— йўқ —</option>${cols.map(c=>`<option value="${c.i}" ${imp.map[k]===c.i?"selected":""}>${esc(c.l).slice(0,40)}</option>`).join("")}</select></div>`;
+  const data=imp.rows.slice(imp.h+1).filter(r=>r.some(x=>String(x??"").trim()));
+  return `<div class="sum"><span>Топилди: <b>${num(data.length)} қатор</b></span><span>Варақ: <b>${esc(imp.sheet)}</b></span></div>
+    <div class="lbl">Қайси устунда нима борлигини текширинг</div>
+    <div class="mapgrid">${F.map(([k,l,r])=>sel(k,l,r)).join("")}</div>
+    ${imp.target==="prices"?`<div class="frow"><div class="f"><label for="f_sup">Фирма номи *</label><input id="f_sup" autocomplete="off" value="${esc(imp.sup||"")}"></div><div class="f"><label for="f_date">Нарх санаси</label><input autocomplete="off" id="f_date" type="date" value="${todayISO()}"></div></div>
+      ${pickChips("f_sup",state.suppliers.map(x=>x.name))}
+      <div class="m" style="font-size:12px;color:var(--muted)">Шу фирманинг эски рўйхати бўлса, янгиси билан алмаштирилади.</div>`
+    :`${branchSel()}<div class="m" style="font-size:12px;color:var(--muted)">Сони кўрсатилган бўлса, шу филиалга қўшилади (кассага ёзилмайди). Базада бор дорининг нархи янгиланади.</div>`}
+    <div class="lbl">Биринчи қаторлар</div>
+    <div class="tbl prev"><table><tbody>${data.slice(0,4).map(r=>`<tr>${F.map(([k])=>`<td>${imp.map[k]>=0?esc(String(r[imp.map[k]]??"")).slice(0,40):"—"}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+}
+async function parseSheet(file,target){
+  const X=await loadXLSX();const buf=await file.arrayBuffer();const wb=X.read(buf,{type:"array",cellDates:true});
+  let best=null;for(const name of wb.SheetNames){const rows=X.utils.sheet_to_json(wb.Sheets[name],{header:1,raw:true,defval:""});if(!best||rows.length>best.rows.length)best={name,rows};}
+  const rows=best.rows;let h=0,score=-1;
+  for(let i=0;i<Math.min(rows.length,40);i++){const r=rows[i].map(x=>String(x??""));const sc=Object.values(GUESS).filter(re=>r.some(c=>re.test(c))).length;if(sc>score){score=sc;h=i;}}
+  const hdr=(rows[h]||[]).map(x=>String(x??""));const map={};
+  for(const [k] of IMPF[target]){const re=GUESS[k];let idx=-1;
+    if(k==="p"){idx=hdr.findIndex(c=>/розн|сотиш/i.test(c));if(idx<0)idx=hdr.findIndex(c=>/цена|нарх|price|стоим/i.test(c)&&!/закуп|опт|ндс\s*$/i.test(c));if(idx<0)idx=hdr.findIndex(c=>/цена|нарх|price/i.test(c));}
+    else idx=hdr.findIndex(c=>re.test(c));
+    if(k==="c"&&idx===map.p)idx=-1;map[k]=idx;}
+  return {rows,h,map,sheet:best.name};}
+function priceRowsOf(P){const g=(r,k)=>P.map[k]>=0?r[P.map[k]]:"";
+  return P.rows.slice(P.h+1).map(r=>({n:String(g(r,"n")??"").trim(),p:Math.round(xnum(g(r,"p"))*100)/100,b:cleanCode(g(r,"b")),m:String(g(r,"m")??"").trim().slice(0,60),e:xdate(g(r,"e"))})).filter(r=>r.n&&r.p>0).map(r=>{const o={n:r.n.slice(0,160),p:r.p};if(r.b)o.b=r.b;if(r.m)o.m=r.m;if(r.e)o.e=r.e;return o;});}
+async function savePriceList(sup,rows,date,onp){
+  const supName=(state.suppliers.find(x=>x.name.toLowerCase()===sup.toLowerCase())||{name:sup}).name;
+  for(const d of state.pricelists.filter(d=>d.supplier===supName&&!d.manual))await delRec("pricelists",d.id,true);
+  const key=hashId(supName),CH=700;let k=0;
+  for(let i=0;i<rows.length;i+=CH){if(onp)onp(Math.min(i+CH,rows.length),rows.length);if(!(await setDoc("pricelists","pl_"+key+"_"+k,{supplier:supName,date,part:k,rows:rows.slice(i,i+CH)})))return false;k++;}
+  if(!state.suppliers.some(x=>x.name.toLowerCase()===supName.toLowerCase()))await addRec("suppliers",{name:supName,phone:"",note:""});
+  return supName;}
+function guessFirm(fileName,P){const fn=norm(fileName.replace(/\.(xlsx|xls|csv)$/i,"").replace(/[_\-.]+/g," "));
+  const head=norm(P.rows.slice(0,Math.max(1,P.h)).map(r=>r.join(" ")).join(" "));
+  const hit=[...state.suppliers].sort((a,b)=>b.name.length-a.name.length).find(x=>{const n=norm(x.name);return n.length>=3&&(fn.includes(n)||head.includes(n));});
+  return hit?hit.name:fileName.replace(/\.(xlsx|xls|csv)$/i,"").replace(/[_]+/g," ").trim().slice(0,40);}
+let bulk=null;
+function bulkList(){if(!bulk)return `<div class="m" style="font-size:12.5px;color:var(--muted)">Фирмалардан келган Excel файлларни бирданига белгиланг (10, 50, 100 та бўлса ҳам). Дастур ҳар бир файл қайси фирманики эканини файл номидан ўзи топади.</div>`;
+  const ok=bulk.filter(x=>!x.err).length;
+  return `<div class="sum"><span>Файллар: <b>${bulk.length} та</b></span><span>Юкланади: <b>${ok} та</b></span>${bulk.length-ok?`<span class="neg">Хато: <b>${bulk.length-ok} та</b></span>`:""}</div>
+  <div class="list">${bulk.map((x,i)=>`<div class="row" style="align-items:flex-start"><div style="flex:1;min-width:0"><div class="m" style="overflow-wrap:anywhere">📄 ${esc(x.file)}</div>
+    ${x.err?`<div class="m neg">${esc(x.err)}</div>`:`<div class="f" style="margin-top:4px"><label for="bf_${i}">Фирма</label><input id="bf_${i}" autocomplete="off" value="${esc(x.firm)}"></div><div class="m">${num(x.rows.length)} та нарх${state.suppliers.some(z=>z.name===x.firm)?"":" · <b>янги фирма</b>"}</div>`}</div>
+    <span class="m" id="bs_${i}"></span></div>`).join("")}</div>
+  <div class="m" style="font-size:12px;color:var(--muted)">Фирма номи нотўғри бўлса, тузатинг. Ҳар бир фирманинг эски прайси янгисига алмашади.</div>`;}
+function bulkFields(){return `<label class="cam gal ib" style="align-self:flex-start"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 13h6M9 17h6"/></svg><span>Файлларни танлаш</span><input type="file" accept=".xlsx,.xls,.csv" multiple class="camfile" id="bulkFiles" aria-label="Excel файлларни танлаш"></label>
+  <div class="frow"><div class="f"><label for="f_date">Нарх санаси</label><input id="f_date" type="date" value="${todayISO()}"></div></div>
+  <div id="bulkBody">${bulkList()}</div><div class="m" id="impProg" style="font-size:13px"></div>`;}
+async function bulkRead(files){const prog=$("#impProg");bulk=[];
+  try{await loadXLSX();}catch(e){prog.textContent="Excel ўқувчи юкланмади. Интернетни текширинг.";return;}
+  let i=0;for(const f of files){i++;prog.textContent=`Ўқилмоқда… ${i} / ${files.length}`;
+    try{const P=await parseSheet(f,"prices");if(P.map.n<0||P.map.p<0){bulk.push({file:f.name,err:"Дори номи ёки нарх устуни топилмади — бу файлни алоҳида «Прайс юклаш» орқали юкланг"});continue;}
+      const rows=priceRowsOf(P);bulk.push(rows.length?{file:f.name,firm:guessFirm(f.name,P),rows}:{file:f.name,err:"Нархи бор қатор топилмади"});}
+    catch(e){bulk.push({file:f.name,err:"Файлни ўқиб бўлмади (.xlsx қилиб сақланг)"});}}
+  prog.textContent="";const b=$("#bulkBody");if(b)b.innerHTML=bulkList();}
+async function runBulk(fail){if(!bulk||!bulk.length)return fail("Аввал файлларни танланг");
+  const items=bulk.map((x,i)=>x.err?null:{...x,i,firm:(document.getElementById("bf_"+i)||{value:x.firm}).value.trim()}).filter(Boolean);
+  if(!items.length)return fail("Юкланадиган файл йўқ");
+  if(items.some(x=>!x.firm))return fail("Ҳамма файлга фирма номини ёзинг");
+  const seen={};for(const x of items){const k=x.firm.toLowerCase();if(seen[k])return fail("«"+x.firm+"» икки марта ёзилган. Ҳар бир фирмага битта файл бўлсин.");seen[k]=1;}
+  const prog=$("#impProg"),date=val("f_date")||todayISO();importing=true;$("#saveBtn").disabled=true;let done=0,bad=0,n=0;
+  for(const x of items){n++;const st=document.getElementById("bs_"+x.i);if(st)st.textContent="…";
+    prog.innerHTML=`<b>Юкланмоқда: ${n} / ${items.length} фирма</b> — саҳифани ёпманг`;
+    let r=false;try{r=await savePriceList(x.firm,x.rows,date);}catch(e){}
+    if(r){done++;if(st)st.innerHTML='<span class="pos">✓</span>';}else{bad++;if(st)st.innerHTML='<span class="neg">хато</span>';}}
+  importing=false;pq="";bulk=null;
+  toast(bad?`${done} та фирма юкланди, ${bad} тасида хато`:`${done} та фирманинг прайси юкланди`);return true;}
+async function readImportFile(file){
+  const prog=$("#impProg");prog.textContent="Файл ўқилмоқда…";
+  let X;try{X=await loadXLSX();}catch(e){prog.textContent="Excel ўқувчи юкланмади. Интернетни текшириб, қайта уриниб кўринг.";return;}
+  try{
+    const buf=await file.arrayBuffer();
+    const wb=X.read(buf,{type:"array",cellDates:true});
+    let best=null;
+    for(const name of wb.SheetNames){const rows=X.utils.sheet_to_json(wb.Sheets[name],{header:1,raw:true,defval:""});if(!best||rows.length>best.rows.length)best={name,rows};}
+    const rows=best.rows;
+    let h=0,score=-1;
+    for(let i=0;i<Math.min(rows.length,40);i++){const r=rows[i].map(x=>String(x??""));const sc=Object.values(GUESS).filter(re=>r.some(c=>re.test(c))).length;if(sc>score){score=sc;h=i;}}
+    const hdr=rows[h].map(x=>String(x??""));const map={};
+    for(const [k] of IMPF[imp.target]){const re=GUESS[k];let idx=-1;
+      if(k==="p"){idx=hdr.findIndex(c=>/розн|сотиш/i.test(c));if(idx<0)idx=hdr.findIndex(c=>/цена|нарх|price|стоим/i.test(c)&&!/закуп|опт|ндс\s*$/i.test(c));if(idx<0)idx=hdr.findIndex(c=>/цена|нарх|price/i.test(c));}
+      else idx=hdr.findIndex(c=>re.test(c));
+      if(k==="c"&&idx===map.p)idx=-1;
+      map[k]=idx;}
+    if(imp.target==="prices"&&!imp.sup)imp.sup=file.name.replace(/\.(xlsx|xls|csv)$/i,"").replace(/[_]+/g," ").slice(0,40);
+    Object.assign(imp,{rows,h,map,sheet:best.name});
+    $("#impBody").innerHTML=impBody();prog.textContent="";
+  }catch(e){prog.textContent="Файлни ўқиб бўлмади. Бошқа форматда (.xlsx) сақлаб кўринг.";}
+}
+async function pool(items,n,fn,onp){let i=0,done=0;await Promise.all(Array.from({length:Math.min(n,items.length)},async()=>{while(i<items.length){const it=items[i++];await fn(it);done++;if(onp)onp(done);}}));}
+async function runImport(fail){
+  if(!imp||!imp.rows)return fail("Аввал файлни танланг");
+  const mapv=k=>+(document.getElementById("map_"+k)||{value:-1}).value;
+  IMPF[imp.target].forEach(([k])=>imp.map[k]=mapv(k));
+  for(const [k,l,r] of IMPF[imp.target])if(r&&imp.map[k]<0)return fail("«"+l+"» устунини танланг");
+  const data=imp.rows.slice(imp.h+1);const g=(r,k)=>imp.map[k]>=0?r[imp.map[k]]:"";
+  const prog=$("#impProg");importing=true;$("#saveBtn").disabled=true;
+  try{
+  if(imp.target==="prices"){
+    const sup=val("f_sup");if(!sup){importing=false;$("#saveBtn").disabled=false;return fail("Фирма номини ёзинг");}
+    const rows=data.map(r=>({n:String(g(r,"n")??"").trim(),p:Math.round(xnum(g(r,"p"))*100)/100,b:cleanCode(g(r,"b")),m:String(g(r,"m")??"").trim().slice(0,60),e:xdate(g(r,"e"))})).filter(r=>r.n&&r.p>0).map(r=>{const o={n:r.n.slice(0,160),p:r.p};if(r.b)o.b=r.b;if(r.m)o.m=r.m;if(r.e)o.e=r.e;return o;});
+    if(!rows.length){importing=false;$("#saveBtn").disabled=false;return fail("Нархи бор дори топилмади. Устунларни текширинг.");}
+    const supName=(state.suppliers.find(x=>x.name.toLowerCase()===sup.toLowerCase())||{name:sup}).name;
+    const old=state.pricelists.filter(d=>d.supplier===supName&&!d.manual);
+    for(const d of old)await delRec("pricelists",d.id,true);
+    const date=val("f_date")||todayISO(),key=hashId(supName),CH=700;
+    const chunks=[];for(let i=0;i<rows.length;i+=CH)chunks.push(rows.slice(i,i+CH));
+    let k=0;for(const ch of chunks){prog.textContent=`Сақланмоқда… ${Math.min((k+1)*CH,rows.length)} / ${rows.length}`;if(!(await setDoc("pricelists","pl_"+key+"_"+k,{supplier:supName,date,part:k,rows:ch})))throw 0;k++;}
+    if(!state.suppliers.some(x=>x.name.toLowerCase()===supName.toLowerCase()))await addRec("suppliers",{name:supName,phone:"",note:""});
+    importing=false;toast(supName+": "+num(rows.length)+" та нарх юкланди");pq="";return true;
+  }else{
+    const br=val("f_branch");
+    const rows=data.map(r=>({b:cleanCode(g(r,"b")),n:String(g(r,"n")??"").trim(),p:xnum(g(r,"p")),c:xnum(g(r,"c")),q:Math.round(xnum(g(r,"q"))),e:xdate(g(r,"e"))})).filter(r=>/^[A-Za-z0-9-]{3,60}$/.test(r.b)&&r.n&&r.p>0);
+    if(!rows.length){importing=false;$("#saveBtn").disabled=false;return fail("Штрих-коди, номи ва нархи бор қатор топилмади");}
+    const merged=new Map();rows.forEach(r=>{const x=merged.get(r.b);if(x){if(r.q>0)x.adds.push({q:r.q,e:r.e,c:r.c});}else merged.set(r.b,{...r,adds:r.q>0?[{q:r.q,e:r.e,c:r.c}]:[]});});
+    const list=[...merged.values()];let added=0;
+    await pool(list,6,async r=>{const m=findMed(r.b);
+      const batches=[...((m&&m.batches)||[]),...r.adds.map(a=>({branch:br,qty:a.q,exp:a.e,cost:a.c>0?a.c:0,date:todayISO()}))];
+      const data={barcode:r.b,name:m?m.name:r.n.slice(0,160),price:Math.round(r.p*100)/100,cost:r.c>0?r.c:(m&&m.cost)||0,min:m?minOf(m):DEFAULT_MIN,rx:m?!!m.rx:false,batches,created:m?m.created||Date.now():Date.now()};
+      if(await setDoc("meds",m?m.id:"b"+r.b,data))added++;
+    },d=>{prog.textContent=`Сақланмоқда… ${d} / ${list.length}`;});
+    importing=false;toast(num(added)+" та дори юкланди");return true;
+  }
+  }catch(e){importing=false;$("#saveBtn").disabled=false;return fail("Юклашда хато бўлди. Қайта уриниб кўринг.");}
+}
+const EDITMAP={sales:{f_amount:"amount",f_date:"date",f_cat:"category",f_branch:"branch",f_note:"note"},
+  debts:{f_name:"name",f_phone:"phone",f_items:"items",f_amount:"amount",f_date:"date",f_due:"due",f_branch:"branch"},
+  orders:{f_customer:"customer",f_phone:"phone",f_items:"items",f_total:"total",f_channel:"channel",f_branch:"branch",f_date:"date"},
+  customers:{f_name:"name",f_phone:"phone",f_branch:"branch",f_note:"note"},
+  staff:{f_name:"name",f_role:"role",f_branch:"branch",f_phone:"phone",f_salary:"salary",f_start:"start"},
+  suppliers:{f_name:"name",f_phone:"phone",f_note:"note"},
+  supplies:{f_amount:"amount",f_date:"date",f_branch:"branch",f_note:"note"}};
+const KIND_OF_COL={debts:"debt",orders:"order",customers:"customer",staff:"staff",suppliers:"supplier"};
+function fillForm(){const r=state[editRec.col].find(x=>x.id===editRec.id);if(!r)return;
+  for(const [id,f] of Object.entries(EDITMAP[editRec.col])){const e=document.getElementById(id);if(!e||r[f]===undefined)continue;
+    if(e.tagName==="SELECT"&&![...e.options].some(o=>o.value===String(r[f]))){const o=document.createElement("option");o.textContent=r[f];e.appendChild(o);}
+    e.value=r[f];}}
+async function saveRec(col,data){
+  if(!editRec)return addRec(col,data);
+  return updRec(col,editRec.id,data);
+}
+async function stockOp(k,fail){
+  const m=findMed(medFor);if(!m)return fail("Дори топилмади");
+  const qty=Math.round(+val("f_qty"));
+  if(k==="move"){const from=val("f_from"),to=val("f_to");
+    if(from===to)return fail("Иккита ҳар хил филиал танланг");if(!(qty>0))return fail("Нечта кўчирилишини ёзинг");
+    if(qty>stockOf(m,from))return fail(from+" да фақат "+stockOf(m,from)+" та бор");
+    const out=(m.batches||[]).map(b=>({...b}));let need=qty;const moved=[];
+    out.filter(b=>b.branch===from&&+b.qty>0).sort((a,b)=>(a.exp||"9999").localeCompare(b.exp||"9999")).forEach(b=>{if(need<=0)return;const t=Math.min(+b.qty,need);b.qty-=t;need-=t;moved.push({...b,qty:t,branch:to,date:todayISO()});});
+    if(!(await updRec("meds",m.id,{batches:[...out.filter(b=>+b.qty>0),...moved]})))return false;
+    await logStock({type:"move",barcode:m.barcode,name:m.name,qty,from,to});return true;}
+  if(k==="count"){const br=val("f_branch");if(val("f_qty")===""||qty<0)return fail("Санаб чиқилган сонни ёзинг");
+    const cur=stockOf(m,br),d=qty-cur;if(d===0){toast("Фарқ йўқ, ҳаммаси тўғри");return true;}
+    const batches=d<0?consume(m.batches,br,-d):[...(m.batches||[]),{branch:br,qty:d,exp:val("f_exp"),cost:+m.cost||0,date:todayISO()}];
+    if(!(await updRec("meds",m.id,{batches})))return false;
+    await logStock({type:"count",barcode:m.barcode,name:m.name,qty:d,branch:br,note:"дастурда "+cur+", санаганда "+qty});
+    setTimeout(()=>toast(d<0?"Камомад: "+(-d)+" та":"Ортиқча: "+d+" та"),400);return true;}
+  const br=val("f_branch"),a=+val("f_amount")||0;if(!(qty>0))return fail("Нечта қайтарганини ёзинг");
+  if(!(await updRec("meds",m.id,{batches:[...(m.batches||[]),{branch:br,qty,exp:val("f_exp"),cost:+m.cost||0,date:todayISO()}]})))return false;
+  await logStock({type:"ret",barcode:m.barcode,name:m.name,qty,branch:br,note:a?"пули қайтарилди "+num(a):""});
+  if(a>0&&document.getElementById("f_tocash").checked)await addRec("sales",{type:"out",amount:a,date:todayISO(),category:"Мижозга қайтарилди",branch:br,note:m.name+" × "+qty});
+  return true;
+}
+async function exportXLSX(){
+  if(!dl){try{dl=window.claude&&window.claude.use?await window.claude.use("downloads"):null;}catch(e){dl=null;}}
+  let X;try{X=await loadXLSX();}catch(e){return toast("Excel тайёрлаб бўлмади, интернетни текширинг");}
+  const c=cashFor(monthSel),wb=X.utils.book_new(),add=(name,aoa)=>X.utils.book_append_sheet(wb,X.utils.aoa_to_sheet(aoa),name);
+  add("Ой якуни",[["Shipa Pharm — "+monthName(monthSel)+(branch==="all"?" (иккала филиал)":" ("+branch+")")],[],["Ой бошида кассада",c.opening],["Жами кирди",c.inc],["Жами сарфланди",c.out],["Соф фойда",c.net],["Ой охирида кассада",c.closing],[],["«Сотув» орқали сотилган дорилар",c.itemRev],["Уларнинг келиш нархи",c.itemCost],["Дорилардан устама фойда",c.itemRev-c.itemCost],[],["Харажатлар тури бўйича"],...Object.entries(c.byCat)]);
+  add("Кунлик ҳисоб",[["Сана","Кирди","Сарфланди","Кун қолдиғи","Кассада"],...c.rows.map(r=>[r.d,r.inc,r.out,r.net,r.cash]),["Жами",c.inc,c.out,c.net,c.closing]]);
+  add("Кирим-чиқим",[["Сана","Тури","Тоифа","Сумма","Филиал","Изоҳ","Ким сотди"],...[...c.ms].sort((a,b)=>(a.date||"").localeCompare(b.date||"")).map(r=>[r.date,r.type==="in"?"Кирим":"Чиқим",r.category||"",+r.amount||0,r.branch||"",r.note||"",r.seller||""])]);
+  add("Қарзлар",[["Ким","Телефон","Нима олди","Олган сана","Қарз","Тўлади","Қолди","Филиал"],...state.debts.filter(inBranch).filter(d=>left(d)>0).map(d=>[d.name,d.phone||"",d.items||"",d.date,+d.amount||0,paid(d),left(d),d.branch||""])]);
+  add("Дорилар қолдиғи",[["Штрих-код","Дори","Сотиш нархи","Келиш нархи",...BRANCHES,"Жами","Энг яқин муддат","Товар қиймати"],...[...state.meds].sort((a,b)=>(a.name||"").localeCompare(b.name||"")).map(m=>[m.barcode,m.name,+m.price||0,+m.cost||0,...BRANCHES.map(b=>stockOf(m,b)),stockOf(m,"all"),nearestExp(m,"all"),stockOf(m,"all")*(+m.cost||0)])]);
+  add("Таъминотчилар",[["Фирма","Телефон","Жами олинган","Қарзимиз"],...state.suppliers.map(x=>{const st=supStats(x.name);return [x.name,x.phone||"",st.bought,st.owed];})]);
+  const buf=X.write(wb,{type:"array",bookType:"xlsx"});
+  const fname="Shipa-Pharm-"+monthSel+".xlsx";
+  if(!dl){try{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([buf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));a.download=fname;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);}catch(e){toast("Файл сақланмади");}return;}
+  try{await dl.save({filename:fname,data:new Uint8Array(buf)});}catch(e){if(e&&e.code!=="declined")toast("Файл сақланмади");}
+}
+let camTarget="", zxP=null;
+function loadZX(){
+  if(window.ZXing)return Promise.resolve(window.ZXing);
+  if(zxP)return zxP;
+  const urls=["https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js","https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"];
+  zxP=new Promise((res,rej)=>{let i=0;const next=()=>{if(i>=urls.length){zxP=null;return rej(new Error("load"));}const sc=document.createElement("script");sc.src=urls[i++];sc.onload=()=>window.ZXing?res(window.ZXing):next();sc.onerror=next;document.head.appendChild(sc);};next();});
+  return zxP;
+}
+function camInput(){let i=document.getElementById("camIn");if(!i){i=document.createElement("input");i.type="file";i.accept="image/*";i.setAttribute("capture","environment");i.id="camIn";i.className="vh";i.tabIndex=-1;document.body.appendChild(i);i.addEventListener("change",()=>{const f=i.files&&i.files[0];i.value="";if(f)decodePhoto(f);});}return i;}
+function openCam(target){camTarget=target;loadZX().catch(()=>{});camInput().click();}
+async function imgCanvas(file,max,rot){
+  const url=URL.createObjectURL(file);
+  try{const img=await new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=rej;im.src=url;});
+    const k=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));const w=Math.round(img.naturalWidth*k),h=Math.round(img.naturalHeight*k);
+    const c=document.createElement("canvas");const r=rot%180!==0;c.width=r?h:w;c.height=r?w:h;const x=c.getContext("2d");
+    x.translate(c.width/2,c.height/2);x.rotate(rot*Math.PI/180);x.drawImage(img,-w/2,-h/2,w,h);return c;}
+  finally{URL.revokeObjectURL(url);}
+}
+async function decodePhoto(file){
+  toast("Расм ўқилмоқда…");
+  let code="";
+  try{
+    if("BarcodeDetector" in window){try{const bd=new BarcodeDetector();const c=await imgCanvas(file,1600,0);const r=await bd.detect(c);if(r&&r[0])code=r[0].rawValue;}catch(e){}}
+    if(!code){
+      const Z=await loadZX();
+      const hints=new Map();hints.set(Z.DecodeHintType.TRY_HARDER,true);
+      hints.set(Z.DecodeHintType.POSSIBLE_FORMATS,[Z.BarcodeFormat.EAN_13,Z.BarcodeFormat.EAN_8,Z.BarcodeFormat.UPC_A,Z.BarcodeFormat.UPC_E,Z.BarcodeFormat.CODE_128,Z.BarcodeFormat.CODE_39,Z.BarcodeFormat.ITF,Z.BarcodeFormat.DATA_MATRIX,Z.BarcodeFormat.QR_CODE]);
+      const reader=new Z.MultiFormatReader();reader.setHints(hints);
+      outer: for(const size of [1600,1000,2400]){for(const rot of [0,90]){
+        const c=await imgCanvas(file,size,rot);
+        try{const bmp=new Z.BinaryBitmap(new Z.HybridBinarizer(new Z.HTMLCanvasElementLuminanceSource(c)));const r=reader.decode(bmp);if(r){code=r.getText();break outer;}}catch(e){}
+      }}
+    }
+  }catch(e){return toast("Камера ўқувчиси юкланмади. Интернетни текширинг.");}
+  code=cleanCode(code);
+  if(code.length>14&&/^01\d{14}/.test(code))code=code.slice(3,16);
+  if(!code)return toast("Штрих-код топилмади. Кодга яқинроқ, тўғри ва ёруғда расмга олинг.");
+  if(camTarget==="f_code"){const e=document.getElementById("f_code");if(e){e.value=code;if(sheetKind==="recv")refreshRecv();const n=sheetKind==="recv"&&findMed(code)?$("#f_qty"):$("#f_name");if(n)n.focus();}toast("Код: "+code);}
+  else doScan(code);
+}
+const val=id=>{const e=document.getElementById(id);return e?e.value.trim():"";};
+let saving=false;
+async function submitSheet(){
+  if(saving)return;
+  const k=sheetKind,err=$("#ferr");const fail=t=>{err.textContent=t;err.hidden=false;};
+  if(k==="remind"||k==="medlist"){closeSheet();return;}
+  let ok=false;saving=true;
+  try{
+  if(k==="markup"){const v=+val("f_pct");if(!(v>=0&&v<=500)||val("f_pct")==="")return fail("Фоизни тўғри ёзинг (масалан 18 ёки 20)");
+    ok=await setDoc("settings","markup",{pct:v});if(!ok)return fail("Сақланмади");
+    if(document.getElementById("f_reprice").checked){
+      const list=state.meds.filter(m=>+m.cost>0&&Math.ceil(m.cost*(1+v/100)/5)*5!==+m.price);let c=0,f=0,done=0;
+      importing=true;const btn=$("#saveBtn");if(btn)btn.disabled=true;const pr=$("#pctEx");
+      const show=()=>{if(pr)pr.innerHTML=`<b>Нархлар янгиланмоқда: ${done} / ${list.length}</b> — саҳифани ёпманг`;};show();
+      try{await pool(list,10,async m=>{const np=Math.ceil(m.cost*(1+v/100)/5)*5;let r=false;
+        for(let t=0;t<3&&!r;t++){try{await db.collection("meds").doc(m.id).update({price:np});r=true;}catch(e){}}
+        if(!db){m.price=np;r=true;}
+        r?c++:f++;done++;show();});}finally{importing=false;}
+      if(f){toast(`${c} та янгиланди, ${f} тасида хато. «Устама фоизи»ни қайта сақланг.`);}
+      else toast(`Устама ${v}%. ${c} та дорининг нархи янгиланди`);render();}
+    else toast(`Устама ${v}% қилиб сақланди`);}
+  else if(k==="pin"){let us=userList(),sh=sharedAcc(),changed=false;const msgs=[];
+    const lg=val("f_login").replace(/\s+/g," ").toLowerCase(),pw=val("f_pin");
+    if(lg||pw){if(!(lg.length>=3&&lg.length<=30))return fail("Раҳбар логини 3 тадан 30 тагача белги бўлсин");
+      if(pw.length<4)return fail("Раҳбар пароли камида 4 белги бўлсин");if(pw!==val("f_pin2"))return fail("Раҳбар пароллари бир хил эмас");
+      const old=us.find(u=>u.login===lg);us=us.filter(u=>u.login!==lg);us.push({login:lg,name:val("f_uname")||(old&&old.name)||lg,role:"admin",hash:await sha(lg+":"+pw)});changed=true;msgs.push("раҳбар сақланди");}
+    const slg=val("s_login").replace(/\s+/g," ").toLowerCase(),spw=val("s_pw");
+    if(spw||(slg&&(!sh||slg!==sh.login))){if(!(slg.length>=3&&slg.length<=30))return fail("Умумий логин 3 тадан 30 тагача белги бўлсин");
+      if(spw.length<4)return fail("Умумий парол камида 4 белги бўлсин");if(spw!==val("s_pw2"))return fail("Умумий пароллар бир хил эмас");
+      if(us.some(u=>u.login===slg))return fail("Умумий логин раҳбар логинидан бошқача бўлсин");
+      sh={login:slg,hash:await sha(slg+":"+spw)};changed=true;msgs.push("умумий логин сақланди");}
+    if(!changed){closeSheet();return;}
+    if(!us.length)return fail("Аввал ўзингизни раҳбар қилиб қўшинг (пастдаги катаклар)");
+    ok=await saveUsers(us,sh);if(!ok)return fail("Сақланмади, қайта уриниб кўринг.");
+    if(!me||me.role!=="admin"){const a=us.find(u=>u.login===lg);if(a){me={login:a.login,name:a.name,role:"admin",h:a.hash};try{localStorage.setItem("sp_me",JSON.stringify(me))}catch(e){}}}
+    else{const a=us.find(u=>u.login===me.login);if(a){me.h=a.hash;try{localStorage.setItem("sp_me",JSON.stringify(me))}catch(e){}}}
+    toast(msgs.join(", "));}
+  else if(k==="import"){ok=await runImport(fail);if(ok===true){importing=false;}}
+  else if(k==="bulkpl"){ok=await runBulk(fail);if(ok!==true){importing=false;const b=$("#saveBtn");if(b)b.disabled=false;}}
+  else if(k==="move"||k==="count"||k==="ret"){ok=await stockOp(k,fail);}
+  else if(k==="recv"){
+    const code=cleanCode(val("f_code")),m=findMed(code),qty=Math.round(+val("f_qty")),cost=+val("f_cost")||0,price=+val("f_price");
+    if(!code)return fail("Штрих-кодни ўқитинг ёки ёзинг");if(!/^[A-Za-z0-9-]{3,60}$/.test(code))return fail("Штрих-кодда фақат рақам ва ҳарф бўлсин");
+    if(!m&&!val("f_name"))return fail("Дори номини ёзинг");
+    if(!(qty>0))return fail("Нечта келганини ёзинг");
+    if(!(price>0))return fail("Сотиш нархини ёзинг");
+    const br=val("f_branch"),exp=val("f_exp"),mode=val("f_paymode"),sup=val("f_sup");
+    if(mode==="credit"&&!sup)return fail("Қарзга олинган бўлса, фирма номини ёзинг");
+    if(mode==="credit"&&!(cost>0))return fail("Келиш нархини ёзинг");
+    const data={barcode:code,name:m?m.name:val("f_name"),price,cost:cost||(m&&m.cost)||0,min:m?minOf(m):DEFAULT_MIN,rx:m?!!m.rx:!!document.getElementById("f_rx").checked,
+      batches:[...((m&&m.batches)||[]),{branch:br,qty,exp,cost,date:todayISO()}],created:m?m.created||Date.now():Date.now()};
+    ok=await setDoc("meds",m?m.id:"b"+code,data);
+    if(ok&&sup&&!state.suppliers.some(x=>x.name.toLowerCase()===sup.toLowerCase()))await addRec("suppliers",{name:sup,phone:"",note:""});
+    const supName=sup?(state.suppliers.find(x=>x.name.toLowerCase()===sup.toLowerCase())||{name:sup}).name:"";
+    if(ok&&supName&&cost>0)await upsertManualPrice(supName,data.name,cost,code);
+    if(ok&&mode!=="none"&&cost*qty>0){
+      if(supName)await addRec("supplies",{type:"buy",supplier:supName,amount:cost*qty,date:todayISO(),branch:br,paid:mode==="cash",note:data.name+" × "+qty});
+      if(mode==="cash")await addRec("sales",{type:"out",amount:cost*qty,date:todayISO(),category:"Дори харид",branch:br,note:data.name+" × "+qty+(supName?" · "+supName:"")});
+    }
+    if(ok){scanCode=code;}
+  }
+  else if(k==="med"){const m=findMed(editMed);const code=cleanCode(val("f_code")),name=val("f_name"),price=+val("f_price");
+    if(!m)return fail("Дори топилмади");
+    if(!/^[A-Za-z0-9-]{3,60}$/.test(code))return fail("Штрих-кодда фақат рақам ва ҳарф бўлсин");
+    if(!name)return fail("Дори номини ёзинг");if(!(price>0))return fail("Сотиш нархини киритинг");
+    const dup=findMed(code);if(dup&&dup.id!==m.id)return fail("Бу код аллақачон бор: "+dup.name);
+    const batches=(m.batches||[]).map((b,i)=>({...b,qty:Math.max(0,Math.round(+val("f_bq"+i)||0)),exp:val("f_be"+i)})).filter(b=>b.qty>0);
+    const data={barcode:code,name,price,cost:+val("f_cost")||0,min:+val("f_min")||0,rx:!!document.getElementById("f_rx").checked,batches,created:m.created||Date.now()};
+    const nid=code===m.barcode?m.id:"b"+code;
+    ok=await setDoc("meds",nid,data);
+    if(ok&&nid!==m.id)await delRec("meds",m.id,true);
+    if(ok)scanCode=code;
+    if(ok&&medListKind){const mk=medListKind;setTimeout(()=>{medListKind=mk;openSheet("medlist");},60);}}
+  else if(k==="price"){const sup=val("f_sup"),n=val("f_name"),p=+val("f_price"),b=cleanCode(val("f_code"));
+    if(!sup)return fail("Фирмани ёзинг");if(!n)return fail("Дори номини ёзинг");if(!(p>0))return fail("Нархини ёзинг");
+    const supName=(state.suppliers.find(x=>x.name.toLowerCase()===sup.toLowerCase())||{name:sup}).name;
+    if(editPrice){const d=state.pricelists.find(x=>x.id===editPrice.doc);if(d){const rows=(d.rows||[]).filter(r=>r.n!==editPrice.n);
+      if(d.supplier===supName){const o={n,p};if(b)o.b=b;const pe=val("f_pexp");if(pe)o.e=pe;rows.push(o);ok=await updRec("pricelists",d.id,{rows});}
+      else{ok=await updRec("pricelists",d.id,{rows});editPrice=null;}}}
+    if(!editPrice){const id="plm_"+hashId(supName);const d=state.pricelists.find(x=>x.id===id);
+      const rows=((d&&d.rows)||[]).filter(r=>norm(r.n)!==norm(n));const o={n,p};if(b)o.b=b;const pe=val("f_pexp");if(pe)o.e=pe;rows.push(o);
+      ok=await setDoc("pricelists",id,{supplier:supName,date:todayISO(),manual:true,rows});}
+    if(ok&&!state.suppliers.some(x=>x.name.toLowerCase()===supName.toLowerCase()))await addRec("suppliers",{name:supName,phone:"",note:""});}
+  else if(k==="supbuy"){const x=state.suppliers.find(z=>z.id===payFor);const a=+val("f_amount");if(!x)return fail("Фирма топилмади");if(!(a>0))return fail("Суммани ёзинг");
+    const br=val("f_branch"),date=val("f_date")||todayISO(),mode=val("f_paymode");
+    if(editRec){ok=await updRec("supplies",editRec.id,{amount:a,date,branch:br,paid:mode==="cash",note:val("f_note")});}
+    else{ok=await addRec("supplies",{type:"buy",supplier:x.name,amount:a,date,branch:br,paid:mode==="cash",note:val("f_note")});
+    if(ok&&mode==="cash")await addRec("sales",{type:"out",amount:a,date,category:"Дори харид",branch:br,note:x.name+(val("f_note")?" · "+val("f_note"):"")});}}
+  else if(k==="supplier"){const n=val("f_name");if(!n)return fail("Фирма номини ёзинг");
+    if(state.suppliers.some(x=>x.name.toLowerCase()===n.toLowerCase()&&(!editRec||x.id!==editRec.id)))return fail("Бу фирма аллақачон бор");
+    const old=editRec?state.suppliers.find(x=>x.id===editRec.id):null;
+    ok=await saveRec("suppliers",{name:n,phone:val("f_phone"),note:val("f_note")});
+    if(ok&&old&&old.name!==n){for(const e of state.supplies.filter(z=>z.supplier===old.name))await updRec("supplies",e.id,{supplier:n});for(const d of state.pricelists.filter(z=>z.supplier===old.name))await updRec("pricelists",d.id,{supplier:n});}}
+  else if(k==="spay"){const x=state.suppliers.find(z=>z.id===payFor);const a=+val("f_amount");
+    if(!x)return fail("Топилмади");if(!(a>0))return fail("Суммани киритинг");
+    const date=val("f_date")||todayISO(),br=val("f_branch");
+    if(editRec){ok=await updRec("supplies",editRec.id,{amount:a,date,branch:br});}
+    else{ok=await addRec("supplies",{type:"pay",supplier:x.name,amount:a,date,branch:br});
+    if(ok&&document.getElementById("f_tocash").checked)await addRec("sales",{type:"out",amount:a,date,category:"Дори харид",branch:br,note:"Таъминотчига тўлов: "+x.name});}}
+  else if(k==="sadj"){const x=state.suppliers.find(z=>z.id===payFor);if(!x)return fail("Топилмади");const raw=val("f_amount");if(raw===""||+raw<0)return fail("Тўғри қарз суммасини ёзинг");
+    const st=supStats(x.name),d=Math.round(+raw-st.owed),date=val("f_date")||todayISO(),note="қарз қўлда тўғриланди"+(val("f_note")?" · "+val("f_note"):"");
+    if(d===0){toast("Ўзгариш йўқ");return true;}
+    ok=await addRec("supplies",d>0?{type:"buy",supplier:x.name,amount:d,date,branch:branch==="all"?BRANCHES[0]:branch,paid:false,note}:{type:"pay",supplier:x.name,amount:-d,date,branch:branch==="all"?BRANCHES[0]:branch,note});
+    if(ok)setTimeout(()=>toast(x.name+": қарз "+money(+raw)+" қилинди"),300);}
+  else if(k==="close"){const raw=val("f_counted");if(raw==="")return fail("Санаб чиқилган пулни ёзинг");
+    const byName=(val("f_by")||"").trim();if(!state.staff.some(z=>z.name===byName&&(!closeBr||z.branch===closeBr)))return fail("Кассани фақат «Ходимлар»да рўйхатга олинган ходим ёпа олади. Рўйхатдан танланг.");
+    const counted=+raw,x=shiftCalc(closeBr,todayISO());
+    const old=state.shifts.find(z=>z.branch===closeBr&&z.date===todayISO());
+    if(old)await delRec("shifts",old.id,true);
+    ok=await addRec("shifts",{date:todayISO(),branch:closeBr,by:val("f_by"),counted,expected:x.expected,diff:counted-x.expected,cashIn:x.cashIn,cardIn:x.cardIn,out:x.out,note:val("f_note")});
+    if(ok){const d=counted-x.expected;setTimeout(()=>toast(d===0?"Касса тўғри ёпилди":d<0?"Камомад: "+money(-d):"Ортиқча: "+money(d)),400);}}
+  else if(k==="in"||k==="out"){const a=+val("f_amount");if(!(a>0))return fail("Суммани киритинг");
+    ok=await saveRec("sales",{type:k,amount:a,date:val("f_date")||todayISO(),category:val("f_cat"),branch:val("f_branch"),note:val("f_note")});}
+  else if(k==="debt"){const a=+val("f_amount");if(!val("f_name"))return fail("Ким олганини ёзинг");if(!(a>0))return fail("Қарз суммасини киритинг");
+    const dd={name:val("f_name"),phone:val("f_phone"),items:val("f_items"),amount:a,date:val("f_date")||todayISO(),due:val("f_due"),branch:val("f_branch")};
+    if(editRec){const r=state.debts.find(x=>x.id===editRec.id);if(r&&a<paid(r))return fail("Сумма тўланган пулдан ("+money(paid(r))+") кам бўлмасин");}else dd.payments=[];
+    const isNew=!editRec;ok=await saveRec("debts",dd);if(ok&&isNew)await ensureCustomer(dd.name,dd.phone,dd.branch);}
+  else if(k==="pay"){const d=state.debts.find(x=>x.id===payFor);const a=+val("f_amount");
+    if(!d)return fail("Қарз топилмади");if(!(a>0))return fail("Суммани киритинг");if(a>left(d))return fail("Тўлов қолган қарздан ("+money(left(d))+") кўп бўлмасин");
+    const date=val("f_date")||todayISO();
+    ok=await updRec("debts",d.id,{payments:[...(d.payments||[]),{date,amount:a}]});
+    if(ok&&document.getElementById("f_tocash").checked)await addRec("sales",{type:"in",amount:a,date,category:"Қарз қайтарилди",branch:d.branch,note:d.name});}
+  else if(k==="order"){if(!val("f_customer")&&!val("f_phone"))return fail("Мижоз исми ёки телефонини киритинг");
+    const od={customer:val("f_customer"),phone:val("f_phone"),items:val("f_items"),total:+val("f_total")||0,channel:val("f_channel"),branch:val("f_branch"),date:val("f_date")||todayISO()};if(!editRec)od.status="Янги";
+    ok=await saveRec("orders",od);}
+  else if(k==="customer"){if(!val("f_name"))return fail("Исмни киритинг");
+    ok=await saveRec("customers",{name:val("f_name"),phone:val("f_phone"),branch:val("f_branch"),note:val("f_note")});}
+  else{if(!val("f_name"))return fail("Исмни киритинг");
+    ok=await saveRec("staff",{name:val("f_name"),role:val("f_role"),branch:val("f_branch"),phone:val("f_phone"),salary:+val("f_salary")||0,start:val("f_start")});}
+  }finally{saving=false;}
+  if(ok){closeSheet();toast("Сақланди");}
+}
+
+/* ---------- events ---------- */
+const tabOf=v=>MORE.includes(v)?"more":v;
+function setTab(v,keepScan){
+  if(v==="prices"&&!boss()){toast("Нархлар бўлимини фақат раҳбар кўради");v="home";}
+  if(v==="more")v=lastMore;
+  if(MORE.includes(v))lastMore=v;
+  if(!keepScan)scanCode="";
+  view=v;q="";confirmId=null;daySel=null;
+  closeMenu();
+  if($("#sheetBg")&&!importing){$("#sheetHost").innerHTML="";editMed=null;prefillCode="";editRec=null;imp=null;editPrice=null;}
+  {const sec=SECTIONS.find(x=>x[0]===v);const c=document.getElementById("curSec");if(c&&sec)c.textContent=sec[1];}
+  document.querySelectorAll("#tabs button").forEach(b=>b.dataset.v===tabOf(view)?b.setAttribute("aria-current","page"):b.removeAttribute("aria-current"));
+  window.scrollTo(0,0);render();
+}
+document.addEventListener("pointerdown",e=>{if(e.target.classList&&e.target.classList.contains("camfile"))loadZX().catch(()=>{});});
+document.addEventListener("click",e=>{
+  if(!e.target.closest(".mpop")&&!e.target.closest("[data-menu]"))closeMenu();
+  if(e.target.id==="sheetBg")return closeSheet();
+  const rw=e.target.closest("a[data-remwa]");if(rw){markRem(rw.dataset.remwa);return;}
+  const tr=e.target.closest("tr[data-day]");if(tr){daySel=tr.dataset.day===daySel?null:tr.dataset.day;render();if(daySel){const dl=document.getElementById("dayList");if(dl)dl.scrollIntoView({behavior:"smooth",block:"start"});}return;}
+  const t=e.target.closest("button");if(!t)return;
+  const d=t.dataset;
+  if(t.id==="addBtn")return openSheet();
+  if(d.cdebt){const c=state.customers.find(x=>x.id===d.cdebt);if(!c)return;prefDebt={name:c.name,phone:c.phone,branch:c.branch};editRec=null;return openSheet("debt");}
+  if(d.ddebt){const r=state.debts.find(x=>x.id===d.ddebt);if(!r)return;prefDebt={name:r.name,phone:r.phone,branch:r.branch};editRec=null;return openSheet("debt");}
+  if(t.hasAttribute("data-saveexpm")){const v=Math.round(+val("f_expm"));if(!(v>=1&&v<=24))return toast("1 дан 24 гача ой ёзинг");
+    setDoc("settings","expwarn",{months:v}).then(ok=>{if(ok){EXP_WARN=Math.round(v*30.44);const x=state.settings.find(z=>z.id==="expwarn");if(x)x.months=v;else state.settings.push({id:"expwarn",months:v});toast("Энди муддатига "+v+" ой қолганда огоҳлантиради");refreshML();}});return;}
+  if(d.aside){const m=state.meds.find(x=>x.id===d.aside);if(!m)return;const nb=(m.batches||[]).map(b=>+b.qty>0&&nearB(b)&&(branch==="all"||b.branch===branch)?{...b,aside:true}:b);t.disabled=true;
+    updRec("meds",m.id,{batches:nb}).then(ok=>{if(ok){m.batches=nb;toast(m.name+": ажратилди");}refreshML();});return;}
+  if(t.hasAttribute("data-seeddemo")){t.disabled=true;seedDemo();return;}
+  if(d.askwo){confirmId="wo:"+d.askwo;return refreshML();}
+  if(t.hasAttribute("data-cancelml")){confirmId=null;return refreshML();}
+  if(d.woff){const m=state.meds.find(x=>x.id===d.woff);confirmId=null;if(!m)return refreshML();t.disabled=true;writeOff(m).then(l=>{if(l>=0)toast(m.name+": ҳисобдан чиқарилди"+(l?" · зарар "+money(l):""));refreshML();});return;}
+  if(t.hasAttribute("data-woffall")){if(confirmId!=="woall"){confirmId="woall";return refreshML();}confirmId=null;t.disabled=true;
+    (async()=>{let tot=0,n=0;const L=medsByKind("dead");for(const m of L){const l=await writeOff(m);if(l>=0){tot+=l;n++;}}toast(n+" та дори ҳисобдан чиқарилди · зарар "+money(tot));refreshML();})();return;}
+  if(t.hasAttribute("data-bulkpl")){editRec=null;bulk=null;return openSheet("bulkpl");}
+  if(t.hasAttribute("data-remind")){editRec=null;return openSheet("remind");}
+  if(d.remdone)return markRem(d.remdone);
+  if(t.hasAttribute("data-menu"))return openMenu();
+  if(d.b){branch=d.b;document.querySelectorAll("#branchSeg button").forEach(b=>b.setAttribute("aria-pressed",b===t));return render();}
+  if(d.v==="lock"){closeMenu();if(lockOn()&&(!me||me.role!=="admin"))return toast("Бу бўлимга фақат раҳбар киради");return openSheet("pin");}
+  if(d.v==="logout"){return logout();}
+  if(d.v==="markup"){closeMenu();if(lockOn()&&(!me||me.role!=="admin"))return toast("Фоизни фақат раҳбар ўзгартира олади");return openSheet("markup");}
+  if(d.lockmode){return setLockMode(d.lockmode);}
+  if(d.iam){me={login:window._pendL,name:d.iam,role:"staff",h:window._pendH};try{localStorage.setItem("sp_me",JSON.stringify(me))}catch(e){};seller=d.iam;try{localStorage.setItem("sp_seller",seller)}catch(e){};showLock();render();toast("Хуш келибсиз, "+d.iam);return;}
+
+  if(d.deluser){confirmId=null;const us=userList().filter(u=>u.login!==d.deluser);if(!us.length)return toast("Охирги раҳбарни ўчириб бўлмайди");saveUsers(us).then(ok=>{if(ok){toast("Раҳбар ўчирилди");if(me&&me.login===d.deluser)logout();else $("#fields").innerHTML=formFields("pin");}});return;}
+  if(d.v||d.go)return setTab(d.v||d.go);
+  if(d.medf){medFilter=d.medf;if(view!=="meds"){setTab("meds");}return render();}
+  if(t.hasAttribute("data-closeday")){daySel=null;return render();}
+  if(d.kind){sheetKind=d.kind;document.querySelectorAll(".kinds button").forEach(b=>b.setAttribute("aria-pressed",b===t));$("#fields").innerHTML=formFields(sheetKind);$("#ferr").hidden=true;const f=$("#fields input");if(f)f.focus();return;}
+  if(d.pay){payFor=d.pay;return openSheet("pay");}
+  if(d.spay){payFor=d.spay;return openSheet("spay");}
+  if(d.supopen){supOpen=supOpen===d.supopen?null:d.supopen;return render();}
+  if(d.closeshift){closeBr=d.closeshift;return openSheet("close");}
+  if(d.edit){const r=state[d.edit].find(x=>x.id===d.id);if(!r)return;editRec={col:d.edit,id:d.id};confirmId=null;if(d.edit==="supplies"){const x=state.suppliers.find(z=>z.name===r.supplier);payFor=x?x.id:null;return openSheet(r.type==="pay"?"spay":"supbuy");}return openSheet(d.edit==="sales"?r.type:KIND_OF_COL[d.edit]);}
+  if(d.mop){medFor=d.code;return openSheet(d.mop);}
+  if(t.hasAttribute("data-inv")){invMode=!invMode;toast(invMode?"Инвентаризация ёқилди: сканерланган дори учун санаш ойнаси очилади":"Инвентаризация ўчирилди");return render();}
+  if(d.import){imp={target:d.import,sup:d.sup||""};return openSheet("import");}
+  if(d.delpl){confirmId=null;const ls=state.pricelists.filter(x=>x.supplier===d.delpl);(async()=>{for(const x of ls)await delRec("pricelists",x.id,true);toast("Нарх рўйхати ўчирилди");})();return;}
+  if(d.copy){const r=state.debts.find(x=>x.id===d.copy);if(!r)return;const txt=remindText(r);
+    try{navigator.clipboard.writeText(txt).then(()=>toast("Матн нусхаланди"),()=>toast(txt));}catch(e){toast(txt);}return;}
+  if(t.hasAttribute("data-export")){if(!boss())return toast("Фақат раҳбар учун");return exportXLSX();}
+  if(d.cam)return openCam(d.cam);
+  if(d.medlist){medListKind=d.medlist;return openSheet("medlist");}
+  if(d.medopen){medOpen=medOpen===d.medopen?null:d.medopen;return render();}
+  if(d.pick){const e=document.getElementById(d.pick);if(e){e.value=d.val;e.dispatchEvent(new Event("change",{bubbles:true}));}return;}
+  if(t.hasAttribute("data-newstaff")){editRec=null;return openSheet("staff");}
+  if(t.hasAttribute("data-newsup")){editRec=null;return openSheet("supplier");}
+  if(d.pq!==undefined){pq=d.pq;render();const x=$("#pq");if(x&&!d.pq)x.focus();window.scrollTo(0,0);return;}
+  if(t.hasAttribute("data-newprice")){editPrice=null;return openSheet("price");}
+  if(d.editprice){const doc=state.pricelists.find(x=>x.id===d.editprice);const r=doc&&(doc.rows||[]).find(z=>z.n===d.n);if(!r)return;editPrice={doc:doc.id,n:r.n,p:r.p,b:r.b||"",e:r.e||"",sup:doc.supplier};return openSheet("price");}
+  if(d.delprice){confirmId=null;const doc=state.pricelists.find(x=>x.id===d.delprice);if(!doc)return;const rows=(doc.rows||[]).filter(z=>z.n!==d.n);
+    (async()=>{if(rows.length)await updRec("pricelists",doc.id,{rows});else await delRec("pricelists",doc.id,true);toast("Нарх ўчирилди");})();return;}
+  if(d.supbuy){payFor=d.supbuy;return openSheet("supbuy");}
+  if(d.sadj){payFor=d.sadj;editRec=null;return openSheet("sadj");}
+  if(d.delpay){confirmId=null;const r=state.debts.find(x=>x.id===d.delpay);if(!r)return;const pays=(r.payments||[]).filter((_,i)=>i!==+d.i);
+    updRec("debts",r.id,{payments:pays}).then(ok=>ok&&toast("Тўлов ўчирилди. Кассадаги кирими алоҳида ўчирилади."));return;}
+  if(t.hasAttribute("data-delallsamples")){if(confirmId!=="allsamples"){confirmId="allsamples";t.textContent="Ростдан ўчирилсинми? Яна босинг";return;}
+    confirmId=null;t.disabled=true;t.textContent="Ўчирилмоқда…";const ls=COLS.flatMap(c=>state[c].filter(r=>r.sample).map(r=>[c,r.id]));
+    (async()=>{await pool(ls,6,async([c,id])=>delRec(c,id,true));toast("Намуналар ўчирилди");})();return;}
+  if(t.hasAttribute("data-delsamplepl")){const ls=state.pricelists.filter(x=>x.sample);(async()=>{for(const x of ls)await delRec("pricelists",x.id,true);toast("Намуна нархлар ўчирилди");})();return;}
+  if(t.hasAttribute("data-hpq")){pq=val("hpq");return setTab("prices");}
+  if(d.editmed){editMed=d.editmed;return openSheet("med");}
+  if(d.recv!==undefined){prefillCode=d.recv;return openSheet("recv");}
+  if(d.newmed){prefillCode=d.newmed;saleMsg=null;return openSheet("recv");}
+  if(t.hasAttribute("data-dismiss")){saleMsg=null;return render();}
+  if(d.addcart){msq="";return addToCart(d.addcart);}
+  if(d.inc){const c=cart.find(x=>x.barcode===d.inc);if(c)c.qty++;return render();}
+  if(d.dec){const c=cart.find(x=>x.barcode===d.dec);if(c){c.qty--;if(c.qty<=0)cart=cart.filter(x=>x!==c);}return render();}
+  if(t.hasAttribute("data-clearcart")){cart=[];return render();}
+  if(d.pt){payType=d.pt;return render();}
+  if(t.hasAttribute("data-sell"))return completeSale();
+  if(t.hasAttribute("data-close"))return closeSheet();
+  if(d.ask){confirmId=d.ask;if(sheetKind==="pin"&&$("#sheetBg")){$("#fields").innerHTML=formFields("pin");return;}return render();}
+  if(t.hasAttribute("data-cancel")){confirmId=null;if(sheetKind==="pin"&&$("#sheetBg")){$("#fields").innerHTML=formFields("pin");return;}return render();}
+  if(d.del){const c=d.del,id=d.id;confirmId=null;delRec(c,id);return;}
+});
+document.addEventListener("submit",e=>{e.preventDefault();if(e.target.id==="lockForm")return tryUnlock();submitSheet();});
+let kb="",kbStart=0,kbLast=0;
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"&&$("#sheetBg"))return closeSheet();
+  const t=e.target;
+  if(t.id==="hpq"&&e.key==="Enter"){e.preventDefault();pq=t.value;setTab("prices");return;}
+  if(t.id==="pq"&&e.key==="Enter"){e.preventDefault();pq=t.value;render();return;}
+  if(t.id==="scan"&&e.key==="Enter"){e.preventDefault();const v=t.value;t.value="";doScan(v);return;}
+  if(t.id==="f_code"&&e.key==="Enter"){e.preventDefault();if(sheetKind==="recv")refreshRecv();const n=sheetKind==="recv"&&findMed(val("f_code"))?$("#f_qty"):$("#f_name");if(n)n.focus();return;}
+  if($("#sheetBg")||/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))return;
+  const now=Date.now();
+  if(e.key==="Enter"){if(kb.length>=4&&now-kbLast<100&&(kbLast-kbStart)<=kb.length*50){e.preventDefault();doScan(kb);}kb="";return;}
+  if(e.key.length===1){if(!kb||now-kbLast>100){kb="";kbStart=now;}kb+=e.key;kbLast=now;}
+});
+document.addEventListener("change",e=>{
+  const t=e.target;
+  if(t.dataset.status){t.dataset.s=t.value;updRec("orders",t.dataset.status,{status:t.value});toast("Ҳолат: "+t.value);}
+  if(t.id==="monthSel"){monthSel=t.value;daySel=null;render();}
+  if(t.id==="ordF"){orderFilter=t.value;render();}
+  if(t.id==="debtF"){debtFilter=t.value;render();}
+  if(t.id==="saleBr"){saleBranch=t.value;render();}
+  if(t.id==="seller"){seller=t.value;try{localStorage.setItem("sp_seller",seller)}catch(e){}}
+  if(t.id==="repFrom"){repFrom=t.value;render();}
+  if(t.id==="repTo"){repTo=t.value;render();}
+  if(t.id==="discMode"){discMode=t.value;render();}
+  if(t.id==="f_file"&&t.files&&t.files[0])readImportFile(t.files[0]);
+  if(t.id==="bulkFiles"){const fs=[...(t.files||[])];if(fs.length)bulkRead(fs);t.value="";return;}
+  if(t.classList&&t.classList.contains("impfile")){const fs=t.files;if(fs&&fs.length){if(t.dataset.k==="xls")readImportFile(fs[0]);else readImportPhotos(fs);}t.value="";return;}
+  if(t.classList&&t.classList.contains("camfile")){const f=t.files&&t.files[0];camTarget=t.dataset.camt;t.value="";if(f)decodePhoto(f);}
+  if(t.id&&t.id.startsWith("map_")&&imp){imp.map[t.id.slice(4)]=+t.value;$("#impBody").innerHTML=impBody();}
+  if(t.id==="f_code"&&sheetKind==="recv")refreshRecv();
+  if(t.id==="f_exp")t.dataset.auto="";
+  if(t.id==="f_sup"&&sheetKind==="recv")refreshRecv();
+  if(t.id==="f_name"&&sheetKind==="debt"){const c=state.customers.find(c=>c.name===t.value);if(c&&!val("f_phone"))document.getElementById("f_phone").value=c.phone||"";}
+});
+let kbClosed=false;
+if(window.visualViewport){let lastH=window.visualViewport.height;
+  window.visualViewport.addEventListener("resize",()=>{const h=window.visualViewport.height;
+    if(h>lastH+100){const a=document.activeElement;if(a&&/^(INPUT|TEXTAREA)$/.test(a.tagName)){kbClosed=true;a.blur();setTimeout(()=>{kbClosed=false;},400);}}
+    lastH=h;});}
+document.addEventListener("focusout",e=>{const t=e.target;if(TOUCH&&t&&/^(INPUT|TEXTAREA)$/.test(t.tagName)){kbClosed=true;setTimeout(()=>{kbClosed=false;},300);}});
+let st;document.addEventListener("input",e=>{
+  if(e.target.id==="search"){q=e.target.value;clearTimeout(st);st=setTimeout(render,150);}
+  if(e.target.id==="msearch"){msq=e.target.value;clearTimeout(st);st=setTimeout(render,150);}
+  if(e.target.id==="f_cost"&&(sheetKind==="recv"||sheetKind==="med")){const pr=document.getElementById("f_price");if(pr&&pr.dataset.manual!=="1"){const v=priceFromCost(+e.target.value);pr.value=v||"";}}
+  if(e.target.id==="f_price")e.target.dataset.manual="1";
+  if(e.target.id==="f_pct"){const v=+e.target.value,x=document.getElementById("pctEx");if(x&&v>=0)x.textContent="Масалан: 1 000 ₸ лик дори → "+money(Math.ceil(1000*(1+v/100)/5)*5);}
+  if(e.target.id==="pq"){pq=e.target.value;clearTimeout(st);st=setTimeout(render,60);}
+  if(e.target.id==="disc"){discVal=e.target.value;clearTimeout(st);st=setTimeout(render,250);}
+  if(e.target.id==="f_sup"&&imp)imp.sup=e.target.value;
+});
+
+/* ---------- boot ---------- */
+render();
+(async()=>{
+  db=await connectDB();
+  if(!db){loaded=true;$("#main").insertAdjacentHTML("afterbegin",`<div class="notice">Маълумотлар базасига уланиб бўлмади — киритилган ёзувлар сақланмайди. ${FIREBASE_CONFIG?"Интернетни текширинг.":"Саҳифани claude.ai'да ҳисобингизга кириб очинг."}</div>`);return;}
+  const parts={},got=new Set();let total=0,rq=0,full=new Set();
+  const later=()=>{if(rq)return;rq=setTimeout(()=>{rq=0;render();},40);};
+  const merge=c=>{const m=new Map();for(const k in parts[c])for(const d of parts[c][k])m.set(d.id,d);state[c]=[...m.values()];};
+  COLS.forEach(c=>{parts[c]={};const n=FB?1:(SHARDS[c]||1);
+    const qs=[["all",FB?db.collection(c):db.collection(c).limit(1000)]];
+    if(n>1)for(let k=0;k<n;k++)qs.push(["s"+k,db.collection(c).where("sh","==",k).limit(1000)]);
+    total+=qs.length;
+    qs.forEach(([key,qr])=>qr.onSnapshot(snap=>{parts[c][key]=snap.docs.map(d=>({id:d.id,...d.data()}));merge(c);
+      if(!FB&&key!=="all"&&snap.docs.length>=1000)full.add(c);
+      got.add(c+"/"+key);if(!loaded&&got.size===total){loaded=true;setTimeout(backfillShards,3000);}
+      if(full.size&&!window._fullWarn&&boss()){window._fullWarn=1;toast("Маълумот жуда кўпайди ("+[...full].join(", ")+"). Дастурни расмий версияга ўтказиш вақти келди.");}
+      later();},()=>toast("Маълумот юкланмади")));
+  });
+})();
+async function seedDemo(){const t=todayISO(),D=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d);};
+  const B=BRANCHES;const meds=[["4870000000011","Парацетамол таб 500 мг №10",210,250,[[0,40,D(400)],[1,25,D(180)]]],["4870000000028","Ибупрофен таб 200 мг №20",380,450,[[0,30,D(240)],[1,0,""]]],["4870000000035","Но-шпа таб 40 мг №24",1450,1715,[[0,12,D(500)],[1,8,D(90)]]],
+    ["4870000000042","Смекта пор 3 г №10",2100,2480,[[0,3,D(300)],[1,6,D(-20)]]],["4870000000059","Називин спрей 0,05% 10 мл",1700,2010,[[0,15,D(60)],[1,10,D(420)]]],["4870000000066","Аскорбиновая кислота 50 мг №200",240,285,[[0,50,D(700)],[1,40,D(260)]]],
+    ["4870000000073","Цитрамон таб №10",150,180,[[0,2,D(330)],[1,20,D(330)]]],["4870000000080","Мезим форте таб №20",1250,1475,[[0,18,D(150)],[1,14,D(520)]]]];
+  importing=true;try{
+  for(const [b,n,c,p,bs] of meds)await setDoc("meds","b"+b,{barcode:b,name:n,cost:c,price:p,min:5,rx:false,sample:true,created:Date.now(),batches:bs.filter(x=>x[1]>0).map(([i,q,e])=>({branch:B[i],qty:q,exp:e,cost:c,date:t}))});
+  const sale=(br,cat,items,date)=>addRec("sales",{type:"in",amount:items.reduce((a,i)=>a+i.qty*i.price,0),date,category:cat,branch:br,note:"Сотув: "+items.map(i=>i.name).join(", "),items,costTotal:items.reduce((a,i)=>a+i.qty*i.cost,0),seller:"",discount:0,sample:true});
+  const it=(k,q)=>({barcode:meds[k][0],name:meds[k][1],qty:q,price:meds[k][3],cost:meds[k][2]});
+  await sale(B[0],"Нақд",[it(0,2),it(5,1)],t);await sale(B[0],"Kaspi",[it(2,1)],t);await sale(B[1],"Халқ банк",[it(4,1),it(7,1)],t);await sale(B[1],"Kaspi Pay",[it(0,3)],D(-1));
+  await addRec("sales",{type:"out",amount:15000,date:t,category:"Коммунал",branch:B[0],note:"свет",sample:true});
+  await addRec("debts",{name:"Алишер (демо)",phone:"+7 701 000 00 00",items:"Но-шпа",amount:3500,date:D(-5),due:D(2),branch:B[0],payments:[],sample:true});
+  for(const [sup,k] of [["Инкар",0.92],["Атамирас",0.97]]){await setDoc("pricelists","pl_demo_"+hashId(sup),{supplier:sup,date:t,sample:true,rows:meds.map(([b,n,c])=>({n,b,p:Math.round(c*k),e:D(365)}))});
+    if(!state.suppliers.some(x=>x.name===sup))await addRec("suppliers",{name:sup,phone:"",note:""});}
+  toast("Демо маълумот қўшилди");}finally{importing=false;}}
+async function connectDB(){
+  if(FIREBASE_CONFIG){try{
+    const ld=u=>new Promise((res,rej)=>{const sc=document.createElement("script");sc.src=u;sc.onload=res;sc.onerror=rej;document.head.appendChild(sc);});
+    await ld("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");await ld("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js");
+    if(!window.firebase.apps.length)window.firebase.initializeApp(FIREBASE_CONFIG);FB=true;return window.firebase.firestore();}catch(e){return null;}}
+  try{return window.claude&&window.claude.use?await window.claude.use("db"):null;}catch(e){return null;}}
+async function backfillShards(){if(FB||!db)return;
+  const todo=[];for(const c of Object.keys(SHARDS))for(const r of state[c]||[])if(r.sh===undefined)todo.push([c,r.id]);
+  if(!todo.length)return;await pool(todo,4,async([c,id])=>{try{await db.collection(c).doc(id).update({sh:shardOf(c,id)});}catch(e){}});}
+})();
+</script>
+
+<script>if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
+</body></html>
