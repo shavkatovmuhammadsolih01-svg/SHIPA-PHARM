@@ -586,9 +586,15 @@ async function fbTryUnlock(){
       b.set(db.collection("members").doc(cr.user.uid),{role:"admin",login:lg,name:nm||lg,created:Date.now()});
       b.set(db.collection("meta").doc("setup"),{at:Date.now()});await b.commit();
       fbSetup=true;fbCreating=false;await fbAfterSignIn(cr.user);toast("Хуш келибсиз! Энди ходимлар логинини «Логин ва пароллар»дан қўшинг.");return;}
+    const LS=k=>{try{return +localStorage.getItem(k)||0}catch(e){return 0}},SS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+    const until=LS("sp_lock");if(until>Date.now())return fail("3 марта хато киритилди. "+Math.ceil((until-Date.now())/1000)+" сониядан кейин уриниб кўринг.");
+    const bad=()=>{const n=LS("sp_tries")+1;SS("sp_tries",n);const pi=document.getElementById("pwIn");if(pi)pi.value="";
+      if(n>=3){SS("sp_tries",0);SS("sp_lock",Date.now()+60000);return fail("3 марта хато киритилди. Бир дақиқадан кейин уриниб кўринг.");}
+      return fail("Логин ёки парол нотўғри (яна "+(3-n)+" марта уриниш мумкин)");};
     const ld=await db.collection("logins").doc(await loginKey(lg)).get();
-    if(!ld.exists)return fail("Логин ёки парол нотўғри");
-    await fbAuth.signInWithEmailAndPassword(ld.data().email,pw);
+    if(!ld.exists)return bad();
+    try{await fbAuth.signInWithEmailAndPassword(ld.data().email,pw);}catch(e){if(/wrong-password|invalid-credential|invalid-login|user-not-found/.test((e&&e.code)+""))return bad();throw e;}
+    SS("sp_tries",0);
   }catch(e){fbCreating=false;fail(fbErr(e));}}
 async function fbCreateAccount(role,lg,name,pw){
   const F=window.firebase;const sec=F.apps.find(a=>a.name==="sec")||F.initializeApp(FIREBASE_CONFIG,"sec");const sa=sec.auth();
