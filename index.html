@@ -332,7 +332,7 @@ function openMenu(){
   let h=document.getElementById("menuHost");
   if(!h){h=document.createElement("div");h.id="menuHost";document.body.appendChild(h);}
   if(h.innerHTML){h.innerHTML="";return;}
-  h.innerHTML=`<div class="mpop" role="menu">${SECTIONS.filter(x=>boss()||x[0]!=="prices").map(([v,l,d,ic])=>`<button class="mi" role="menuitem" data-v="${v}" ${view===v?'aria-current="page"':""}><svg viewBox="0 0 24 24">${ic}</svg><span>${l}</span></button>`).join("")}</div>`;
+  h.innerHTML=`<div class="mpop" role="menu">${SECTIONS.filter(x=>boss()||(x[0]!=="prices"&&x[0]!=="staff")).map(([v,l,d,ic])=>`<button class="mi" role="menuitem" data-v="${v}" ${view===v?'aria-current="page"':""}><svg viewBox="0 0 24 24">${ic}</svg><span>${l}</span></button>`).join("")}</div>`;
 }
 function closeMenu(){const h=document.getElementById("menuHost");if(h)h.innerHTML="";}
 let EXP_WARN=274;const DEFAULT_MIN=5;
@@ -444,6 +444,7 @@ function supStats(name){
   const last=e.filter(x=>x.type==="buy").map(x=>x.date).sort().pop()||"";
   return {owed:Math.max(0,credit-pays),bought:sum(e.filter(x=>x.type==="buy")),last,entries:e};
 }
+function supHist(e){let b=0;return [...e].sort((p,q)=>(p.date||"").localeCompare(q.date||"")||(p.created||0)-(q.created||0)).map(x=>{if(x.type==="pay")b-=+x.amount||0;else if(!x.paid)b+=+x.amount||0;return {...x,bal:Math.max(0,b)};}).reverse();}
 const supOwedTotal=()=>state.suppliers.reduce((a,x)=>a+supStats(x.name).owed,0);
 function shiftCalc(br,date){
   const s=state.sales.filter(r=>r.branch===br&&r.date===date);
@@ -540,9 +541,7 @@ function fbErr(e){const c=(e&&(e.code||e))+"";
   return typeof e==="string"?e:"Хато бўлди, қайта уриниб кўринг";}
 function fbLockHTML(mode){const brand=`<div class="brand"><b>Shipa <span>Pharm</span></b></div>`;
   if(mode==="wait")return `<div class="lockbox">${brand}<div class="m" style="text-align:center">Юкланмоқда…</div></div>`;
-  if(mode==="pick"){const st=state.staff.filter(x=>x.name);return `<div class="lockbox">${brand}<div class="lbl">Сиз кимсиз? Исмингизни танланг</div>
-    <div class="pickme">${st.sort((a,b)=>(a.name||"").localeCompare(b.name||"")).map(x=>`<button type="button" class="btn2" data-iam="${esc(x.name)}">${esc(x.name)}<small>${esc(x.role||"")}${x.branch?" · "+esc(x.branch):""}</small></button>`).join("")}</div>
-    <button type="button" class="x" data-logout style="margin-top:8px">Чиқиш</button></div>`;}
+  if(mode==="pick")return `<form class="lockbox" id="whoForm"><div class="brand"><b>Shipa <span>Pharm</span></b></div><div class="f"><label for="whoIn">Исм-фамилиянгизни ёзинг</label><input id="whoIn" autocomplete="off" placeholder="масалан: Дилноза Имамова"></div><div class="err" id="whoErr" hidden></div><button class="add big" type="submit">Кириш</button>${FB?`<button type="button" class="x" data-logout style="margin-top:8px">Чиқиш</button>`:""}</form>`;
   const pw2=mode==="setup";
   return `<form class="lockbox" id="lockForm">${brand}
     ${pw2?`<div class="m" style="font-size:13.5px">Биринчи марта кириш: ўзингизни <b>раҳбар</b> қилиб қўшинг. Бошқа раҳбарлар ва ходимларни кейин «Логин ва пароллар»дан қўшасиз.</div><div class="f"><label for="nmIn">Исмингиз</label><input id="nmIn" autocomplete="off"></div>`:""}
@@ -615,8 +614,7 @@ async function tryUnlock(){
   else if(sh&&sh.login===lg&&sh.hash===h){
     const st=state.staff.filter(x=>x.name);
     if(st.length){const o=document.getElementById("lockScr");pinTries=0;
-      o.innerHTML=`<div class="lockbox"><div class="brand"><b>Shipa <span>Pharm</span></b></div><div class="lbl">Сиз кимсиз? Исмингизни танланг</div>
-        <div class="pickme">${st.sort((a,b)=>(a.name||"").localeCompare(b.name||"")).map(x=>`<button type="button" class="btn2" data-iam="${esc(x.name)}">${esc(x.name)}<small>${esc(x.role||"")}${x.branch?" · "+esc(x.branch):""}</small></button>`).join("")}</div></div>`;
+      o.innerHTML=`<form class="lockbox" id="whoForm"><div class="brand"><b>Shipa <span>Pharm</span></b></div><div class="f"><label for="whoIn">Исм-фамилиянгизни ёзинг</label><input id="whoIn" autocomplete="off" placeholder="масалан: Дилноза Имамова"></div><div class="err" id="whoErr" hidden></div><button class="add big" type="submit">Кириш</button>${FB?`<button type="button" class="x" data-logout style="margin-top:8px">Чиқиш</button>`:""}</form>`;
       window._pendH=h;window._pendL=lg;return;}
     me={login:lg,name:"",role:"staff",h};}
   else{pinTries++;if(pinTries>=3)setTimeout(()=>pinTries=0,60000);err.textContent="Логин ёки парол нотўғри"+(pinTries<3?` (яна ${3-pinTries} марта уриниш мумкин)`:"");err.hidden=false;document.getElementById("pwIn").value="";return;}
@@ -1066,9 +1064,10 @@ function suppliersView(){
         <div><span class="lbl">Жами олинган</span><b>${money(st.bought)}</b></div>
         <div><span class="lbl">Охирги товар</span><b>${st.last?nice(st.last):"—"}</b></div>
       </div>
-      ${supOpen===x.id?`<div class="hist"><div class="lbl">Тарих</div>${st.entries.sort(byDate).map(e=>`<div class="hrow"><span>${nice(e.date)} — ${e.type==="pay"?"тўладик":e.paid?"олдик (нақд)":"олдик (қарзга)"} <b>${money(e.amount)}</b>${e.note?`<br><small>${esc(e.note)}</small>`:""}</span><span class="acts">${editBtn("supplies",e.id)}${delBtn("supplies",e.id)}</span></div>`).join("")||`<div class="m">Ёзув йўқ</div>`}
-        <button class="btn2" data-supbuy="${x.id}">+ Қарзга олдик</button></div>`:""}
-      <div class="dacts">${st.owed?`<button class="pay" data-spay="${x.id}">Тўлов</button>`:""}<button class="btn2" data-supopen="${x.id}">${supOpen===x.id?"Тарихни ёпиш":"Тарих"}</button><button class="btn2" data-sadj="${x.id}">Қарзни ўзгартириш</button>${editBtn("suppliers",x.id)}${delBtn("suppliers",x.id)}</div>
+      ${(()=>{const ev=supHist(st.entries),all=supOpen===x.id,sh=all?ev:ev.slice(0,4);
+        return `<div class="hist"><div class="lbl">Қарз тарихи — қачон олинди, қачон тўланди</div>${sh.map(e=>`<div class="hrow"><span>${nice(e.date)} — ${e.type==="pay"?`<b class="pos">тўладик ${money(e.amount)}</b>`:e.paid?`олдик (нақд) <b>${money(e.amount)}</b>`:`<b class="neg">қарзга олдик ${money(e.amount)}</b>`}<br><small>қарз қолди: ${money(e.bal)}${e.note?" · "+esc(e.note):""}</small></span>${all?`<span class="acts">${editBtn("supplies",e.id)}${delBtn("supplies",e.id)}</span>`:""}</div>`).join("")||`<div class="m">Ҳали ёзув йўқ</div>`}
+        ${all?`<button class="btn2" data-supbuy="${x.id}">+ Қарзга олдик</button>`:""}</div>`;})()}
+      <div class="dacts">${st.owed?`<button class="pay" data-spay="${x.id}">Тўлов</button>`:""}<button class="btn2" data-supopen="${x.id}">${supOpen===x.id?"Қисқа кўриш":"Тўлиқ тарих"}</button><button class="btn2" data-sadj="${x.id}">Қарзни ўзгартириш</button>${editBtn("suppliers",x.id)}${delBtn("suppliers",x.id)}</div>
     </div>`).join("")
     ||`<div class="empty">Таъминотчи йўқ. «+ Қўшиш» → «Таъминотчи», ёки товар киритганда фирма номини ёзинг.</div>`}</div></section>`;
 }
@@ -1100,7 +1099,7 @@ function reportView(){
     <div class="list">${slow.slice(0,30).map(({m,st,val})=>`<div class="row"><div><div class="t">${esc(m.name)}</div><div class="m">${st} та бор ${expChip(nearestExp(m))}</div></div><span class="amt">${val?money(val):"—"}</span></div>`).join("")||`<div class="empty">Туриб қолган дори йўқ</div>`}</div>
     ${slow.length?`<div class="sum"><span>Жами туриб қолган товар қиймати: <b>${money(sum(slow,"val"))}</b></span></div>`:""}</section>`;
 }
-function moreSeg(){return `<div class="seg moreseg" role="group" aria-label="Бўлим" style="margin:0">${[["meds","Дорилар"],["money","Касса"],...(boss()?[["prices","Нархлар"]]:[]),["suppliers","Фирмалар"],["report","Ҳисобот"],["orders","Буюртмалар"],["customers","Мижозлар"],["staff","Ходимлар"]].map(([v,l])=>`<button data-v="${v}" aria-pressed="${view===v}">${l}</button>`).join("")}</div>`;}
+function moreSeg(){return `<div class="seg moreseg" role="group" aria-label="Бўлим" style="margin:0">${[["meds","Дорилар"],["money","Касса"],...(boss()?[["prices","Нархлар"]]:[]),["suppliers","Фирмалар"],["report","Ҳисобот"],["orders","Буюртмалар"],["customers","Мижозлар"],...(boss()?[["staff","Ходимлар"]]:[])].map(([v,l])=>`<button data-v="${v}" aria-pressed="${view===v}">${l}</button>`).join("")}</div>`;}
 
 let remindAuto=false,expAuto=false,expPending=false;
 /* Телефонда клавиатура ўзи чиқмасин: фақат одам катакни босганда чиқади */
@@ -1119,6 +1118,7 @@ function render(){
   if(!loaded&&db)return;
   {const mb=myBranch();if(mb)branch=mb;document.querySelectorAll("#branchSeg button").forEach(b=>{b.hidden=!!mb&&b.dataset.b!==mb;b.setAttribute("aria-pressed",b.dataset.b===branch?"true":"false");});}
   showLock();
+  if(view==="staff"&&!boss())view="home";
   const views={zakaz:orderBlock,prices:pricesView,suppliers:suppliersView,report:reportView,home:homeView,sell:sellView,meds:medsView,money:moneyView,debts:debtsView,orders:ordersView,customers:customersView,staff:staffView};
   const a=document.activeElement,fid=a&&["search","msearch","pq","disc"].includes(a.id)?a.id:null,pos=fid?a.selectionStart:0;
   const html=remBanner()+expBanner()+(MORE.includes(view)?moreSeg():"")+views[view]();
@@ -1723,7 +1723,8 @@ async function submitSheet(){
   else if(k==="customer"){if(!val("f_name"))return fail("Исмни киритинг");
     ok=await saveRec("customers",{name:val("f_name"),phone:val("f_phone"),branch:val("f_branch"),note:val("f_note")});}
   else{if(!boss())return fail("Ходимни фақат раҳбар қўша олади");if(!val("f_name"))return fail("Исмни киритинг");
-    ok=await saveRec("staff",{name:val("f_name"),role:val("f_role"),branch:val("f_branch"),phone:val("f_phone"),salary:+val("f_salary")||0,start:val("f_start")});}
+    const sd={name:val("f_name"),role:val("f_role"),branch:val("f_branch"),phone:val("f_phone"),salary:+val("f_salary")||0,start:val("f_start")};
+    ok=await saveRec("staff",sd);}
   }finally{saving=false;}
   if(ok){closeSheet();toast("Сақланди");}
 }
@@ -1732,6 +1733,7 @@ async function submitSheet(){
 const tabOf=v=>MORE.includes(v)?"more":v;
 function setTab(v,keepScan){
   if(v==="prices"&&!boss()){toast("Нархлар бўлимини фақат раҳбар кўради");v="home";}
+  if(v==="staff"&&!boss()){toast("Ходимлар бўлимини фақат раҳбар кўради");v="home";}
   if(v==="more")v=lastMore;
   if(MORE.includes(v))lastMore=v;
   if(!keepScan)scanCode="";
@@ -1776,7 +1778,8 @@ document.addEventListener("click",e=>{
     (async()=>{try{const b=db.batch();b.delete(db.collection("members").doc(m.id));b.delete(db.collection("logins").doc(await loginKey(m.login)));await b.commit();toast("Ўчирилди");}catch(e){toast(fbErr(e));}
       const f=document.getElementById("fields");if(f&&sheetKind==="pin")f.innerHTML=formFields("pin");})();return;}
   if(t.hasAttribute("data-logout")){logout();return;}
-  if(d.iam){me={login:window._pendL,name:d.iam,role:"staff",h:window._pendH};try{localStorage.setItem("sp_me",JSON.stringify(me))}catch(e){};seller=d.iam;try{localStorage.setItem("sp_seller",seller)}catch(e){};showLock();render();toast("Хуш келибсиз, "+d.iam);return;}
+  if(d.iam)return iamAs(d.iam);
+  if(false){me={login:window._pendL,name:d.iam,role:"staff",h:window._pendH};try{localStorage.setItem("sp_me",JSON.stringify(me))}catch(e){};seller=d.iam;try{localStorage.setItem("sp_seller",seller)}catch(e){};showLock();render();toast("Хуш келибсиз, "+d.iam);return;}
 
   if(d.deluser){confirmId=null;const us=userList().filter(u=>u.login!==d.deluser);if(!us.length)return toast("Охирги раҳбарни ўчириб бўлмайди");saveUsers(us).then(ok=>{if(ok){toast("Раҳбар ўчирилди");if(me&&me.login===d.deluser)logout();else $("#fields").innerHTML=formFields("pin");}});return;}
   if(d.v||d.go)return setTab(d.v||d.go);
@@ -1830,7 +1833,14 @@ document.addEventListener("click",e=>{
   if(t.hasAttribute("data-cancel")){confirmId=null;if(sheetKind==="pin"&&$("#sheetBg")){$("#fields").innerHTML=formFields("pin");return;}return render();}
   if(d.del){const c=d.del,id=d.id;confirmId=null;if(c==="staff"&&!boss())return;delRec(c,id);return;}
 });
-document.addEventListener("submit",e=>{e.preventDefault();if(e.target.id==="lockForm")return tryUnlock();submitSheet();});
+function iamAs(nm){me={login:window._pendL,name:nm,role:"staff",h:window._pendH,uid:me&&me.uid};try{localStorage.setItem("sp_me",JSON.stringify(me))}catch(e){};seller=nm;try{localStorage.setItem("sp_seller",seller)}catch(e){};showLock();render();toast("Хуш келибсиз, "+nm);}
+async function whoSubmit(){const v=((document.getElementById("whoIn")||{}).value||"").trim(),err=document.getElementById("whoErr");
+  const fail=t=>{err.textContent=t;err.hidden=false;const i=document.getElementById("whoIn");if(i)i.value="";};
+  if(!v)return fail("Исмингизни ёзинг");const N=t=>(t||"").replace(/\s+/g," ").trim().toLowerCase(),n=N(v);
+  let x=state.staff.find(z=>N(z.name)===n);
+  if(!x){const f=state.staff.filter(z=>N(z.name).split(" ")[0]===n);if(f.length===1)x=f[0];}
+  if(!x)return fail("Бундай ходим топилмади. Исм-фамилиянгизни «Ходимлар»да қандай ёзилган бўлса, шундай ёзинг.");iamAs(x.name);}
+document.addEventListener("submit",e=>{e.preventDefault();if(e.target.id==="lockForm")return tryUnlock();if(e.target.id==="whoForm")return whoSubmit();submitSheet();});
 let kb="",kbStart=0,kbLast=0;
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape"&&$("#sheetBg"))return closeSheet();
