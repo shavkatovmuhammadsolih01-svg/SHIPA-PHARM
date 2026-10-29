@@ -716,7 +716,7 @@ function homeView(){
     <div class="kpi"><span class="lbl">Таъминотчиларга қарзимиз</span><span class="v ${supOwedTotal()?"neg":""}">${money(supOwedTotal())}</span><span class="s">${state.suppliers.filter(x=>supStats(x.name).owed>0).length} та фирмага</span></div>
   </section>
   ${sN&&boss()?`<section class="panel"><h2>Демо маълумотлар</h2><div class="m">Ичида ${sN} та намуна (ёлғон) ёзув бор. Ҳақиқий иш бошлашдан олдин ўчиринг. Ходимлар, раҳбарлар ва логинлар ўчмайди.</div><div class="acts" style="justify-content:flex-start"><button class="btn2" data-delallsamples>🗑 Демони ўчириш</button></div></section>`:""}
-  ${FB&&!state.meds.length&&!state.sales.length&&boss()?`<section class="panel"><h2>Демо</h2><div class="m">База ҳозир бўш. Дастурни синаб кўриш учун намуна маълумот қўшайми? Кейин «Логин ва парол»даги «намуналарни ўчириш» эмас, менга айтсангиз тозалаб бераман.</div><div class="acts" style="justify-content:flex-start"><button class="btn2 pri" data-seeddemo>Демо маълумот қўшиш</button></div></section>`:""}
+
   ${state.meds.length?`<div class="grid2">
     <section class="panel"><div class="ph"><h2>Кам қолган дорилар</h2><button class="x" data-medf="low">Ҳаммаси (${low.length}) →</button></div>
       <div class="list">${low.sort((a,b)=>stockOf(a)-stockOf(b)).slice(0,5).map(x=>`<div class="row"><div class="t">${esc(x.name)}</div><span class="amt ${stockOf(x)?"":"out"}">${stockOf(x)} та</span></div>`).join("")||`<div class="empty">Ҳамма дори етарли</div>`}</div></section>
@@ -1233,8 +1233,8 @@ function formFields(k){
     return `<div class="sum"><span>${bchip(closeBr)}</span>${Object.entries(x.byPay).filter(([k,v])=>v).map(([k,v])=>`<span>${esc(k)}: <b>${money(v)}</b></span>`).join("")}<span>Жами кирим: <b>${money(x.cashIn+x.cardIn)}</b></span><span>Чиқим: <b>${money(x.out)}</b></span></div>
     <div class="sum"><span>Кассада бўлиши керак (ҳамма тур): <b>${money(x.expected)}</b></span></div>
     <div class="f"><label for="f_counted">Санаб чиқилган нақд пул (₸)</label><input autocomplete="off" id="f_counted" type="number" inputmode="numeric" min="0"></div>
-    <div class="f"><label for="f_by">Ким топширди</label><input id="f_by" autocomplete="off" value="${esc(seller)}"></div>
-    ${pickChips("f_by",state.staff.filter(z=>z.branch===closeBr).map(z=>z.name))}
+    <div class="f"><label for="f_by">Ким топширди</label><input id="f_by" autocomplete="off" value="${esc(seller||(boss()&&me&&me.name)||"")}"></div>
+    ${pickChips("f_by",[...(boss()&&me&&me.name?[me.name]:[]),...state.staff.filter(z=>z.branch===closeBr).map(z=>z.name)])}
     <div class="f"><label for="f_note">Изоҳ</label><input autocomplete="off" id="f_note" placeholder="масалан: камомад сабаби"></div>`;}
   if(k==="med"&&false)return"";
   if(k==="in"||k==="out")return `<div class="frow"><div class="f"><label for="f_amount">Сумма (₸)</label><input autocomplete="off" id="f_amount" type="number" inputmode="numeric" min="0" placeholder="0"></div>${dateF()}</div>
@@ -1665,7 +1665,7 @@ async function submitSheet(){
     ok=await addRec("supplies",d>0?{type:"buy",supplier:x.name,amount:d,date,branch:branch==="all"?BRANCHES[0]:branch,paid:false,note}:{type:"pay",supplier:x.name,amount:-d,date,branch:branch==="all"?BRANCHES[0]:branch,note});
     if(ok)setTimeout(()=>toast(x.name+": қарз "+money(+raw)+" қилинди"),300);}
   else if(k==="close"){const raw=val("f_counted");if(raw==="")return fail("Санаб чиқилган пулни ёзинг");
-    const byName=(val("f_by")||"").trim();if(!state.staff.some(z=>z.name===byName&&(!closeBr||z.branch===closeBr)))return fail("Кассани фақат «Ходимлар»да рўйхатга олинган ходим ёпа олади. Рўйхатдан танланг.");
+    const byName=(val("f_by")||"").trim();if(!byName)return fail("Ким топширганини ёзинг");if(!boss()&&!state.staff.some(z=>z.name===byName&&(!closeBr||z.branch===closeBr)))return fail("Кассани фақат раҳбар ёки «Ходимлар»да рўйхатга олинган ходим ёпа олади. Рўйхатдан танланг.");
     const counted=+raw,x=shiftCalc(closeBr,todayISO());
     const old=state.shifts.find(z=>z.branch===closeBr&&z.date===todayISO());
     if(old)await delRec("shifts",old.id,true);
@@ -1870,7 +1870,7 @@ function startSync(){synced=true;
       if(!FB&&key!=="all"&&snap.docs.length>=1000)full.add(c);
       got.add(c+"/"+key);if(!loaded&&got.size===total){loaded=true;setTimeout(backfillShards,3000);}
       if(full.size&&!window._fullWarn&&boss()){window._fullWarn=1;toast("Маълумот жуда кўпайди ("+[...full].join(", ")+"). Дастурни расмий версияга ўтказиш вақти келди.");}
-      if(FB)showLock();
+      if(FB){showLock();if(loaded&&boss()&&!window._demoGone){const ls=COLS.flatMap(c=>state[c].filter(r=>r.sample).map(r=>[c,r.id]));if(ls.length){window._demoGone=1;pool(ls,6,async([c,id])=>{try{await db.collection(c).doc(id).delete();}catch(e){}}).then(()=>toast("Демо маълумотлар ўчирилди"));}}}
       later();},()=>{got.add(c+"/"+key);if(!loaded&&got.size===total)loaded=true;later();})));
   });
 }
