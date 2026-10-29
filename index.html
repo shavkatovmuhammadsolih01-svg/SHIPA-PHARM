@@ -336,7 +336,7 @@ function openMenu(){
 function closeMenu(){const h=document.getElementById("menuHost");if(h)h.innerHTML="";}
 let EXP_WARN=274;const DEFAULT_MIN=5;
 const expMonths=()=>{const d=(state.settings||[]).find(x=>x.id==="expwarn");return d&&+d.months>0?+d.months:9;};
-const state={settings:[],sales:[],debts:[],orders:[],customers:[],staff:[],meds:[],suppliers:[],supplies:[],shifts:[],pricelists:[],stocklog:[]};
+const state={members:[],settings:[],sales:[],debts:[],orders:[],customers:[],staff:[],meds:[],suppliers:[],supplies:[],shifts:[],pricelists:[],stocklog:[]};
 let editPrice=null, editRec=null, invMode=false, medFor="", discMode="sum", discVal="", pq="", imp=null, dl=null, xlsxP=null, importing=false;
 let db=null, loaded=false, view="home", lastMore="meds", branch="all", q="", confirmId=null;
 let monthSel=null, daySel=null, orderFilter="open", debtFilter="open", medFilter="all", payFor=null;
@@ -501,7 +501,7 @@ async function sha(t){const b=await crypto.subtle.digest("SHA-256",new TextEncod
 const usersDoc=()=>state.settings.find(x=>x.id==="users");
 const userList=()=>((usersDoc()&&usersDoc().users)||[]).filter(u=>u.role==="admin");
 const sharedAcc=()=>(usersDoc()&&usersDoc().shared&&usersDoc().shared.login)?usersDoc().shared:null;
-const lockOn=()=>!!sharedAcc()||userList().length>0;
+const lockOn=()=>FB||!!sharedAcc()||userList().length>0;
 const saveUsers=(users,shared)=>setDoc("settings","users",{users,shared:shared===undefined?(usersDoc()&&usersDoc().shared)||null:shared});
 let me=(()=>{try{return JSON.parse((localStorage.getItem("sp_me")||sessionStorage.getItem("sp_me"))||"null")}catch(e){return null}})(), pinTries=0;
 let lockMode="login";
@@ -512,8 +512,9 @@ function lockHTML(){
     <div class="err" id="pinErr" hidden></div><button class="add big" type="submit">Кириш</button></form>`;
 }
 const boss=()=>!lockOn()||!!(me&&me.role==="admin");
-function validMe(){if(!me)return false;if(me.role==="admin")return userList().some(u=>u.login===me.login&&u.hash===me.h);const sh=sharedAcc();return !!sh&&sh.login===me.login&&sh.hash===me.h;}
+function validMe(){if(FB)return fbOk&&!!me&&(me.role==="admin"||!!me.name||!state.staff.some(x=>x.name));if(!me)return false;if(me.role==="admin")return userList().some(u=>u.login===me.login&&u.hash===me.h);const sh=sharedAcc();return !!sh&&sh.login===me.login&&sh.hash===me.h;}
 function showLock(){
+  if(FB||(FIREBASE_CONFIG&&!db))return fbShowLock();
   let o=document.getElementById("lockScr");
   const ok=!lockOn()||validMe();
   const tag=document.getElementById("meTag");if(tag)tag.textContent=lockOn()&&me&&ok?"👤 "+(me.role==="admin"?me.name+" · раҳбар":(me.name?me.name+" · ходим":"ходим")):"";
@@ -522,8 +523,83 @@ function showLock(){
   o=document.createElement("div");o.id="lockScr";o.innerHTML=lockHTML();
   document.body.appendChild(o);setTimeout(()=>{const i=o.querySelector("input");if(i)i.focus();},50);
 }
+/* ---------- Firebase логин (расмий версия) ---------- */
+let fbAuth=null,fbUser=null,fbOk=false,fbSetup=null,fbReady=false,fbCreating=false,synced=false;
+const loginKey=async lg=>(await sha("login:"+lg)).slice(0,40);
+const newEmail=()=>"u"+[...crypto.getRandomValues(new Uint8Array(8))].map(x=>x.toString(16).padStart(2,"0")).join("")+"@shipa-pharm.app";
+function fbErr(e){const c=(e&&(e.code||e))+"";
+  if(/wrong-password|invalid-credential|invalid-login|user-not-found/.test(c))return "Логин ёки парол нотўғри";
+  if(/too-many-requests/.test(c))return "Кўп марта уриндингиз. Бир оздан кейин қайта уриниб кўринг.";
+  if(/network/.test(c))return "Интернет йўқ ёки секин. Текшириб, қайта уриниб кўринг.";
+  if(/weak-password/.test(c))return "Парол камида 6 белги бўлсин";
+  if(/operation-not-allowed/.test(c))return "Firebase'да «Email/Password» кириш усули ёқилмаган.";
+  if(/unauthorized-domain/.test(c))return "Firebase'да шу сайт манзили рухсат этилмаган (Authorized domains).";
+  if(/permission/.test(c))return "Рухсат йўқ";
+  return typeof e==="string"?e:"Хато бўлди, қайта уриниб кўринг";}
+function fbLockHTML(mode){const brand=`<div class="brand"><b>Shipa <span>Pharm</span></b></div>`;
+  if(mode==="wait")return `<div class="lockbox">${brand}<div class="m" style="text-align:center">Юкланмоқда…</div></div>`;
+  if(mode==="pick"){const st=state.staff.filter(x=>x.name);return `<div class="lockbox">${brand}<div class="lbl">Сиз кимсиз? Исмингизни танланг</div>
+    <div class="pickme">${st.sort((a,b)=>(a.name||"").localeCompare(b.name||"")).map(x=>`<button type="button" class="btn2" data-iam="${esc(x.name)}">${esc(x.name)}<small>${esc(x.role||"")}${x.branch?" · "+esc(x.branch):""}</small></button>`).join("")}</div>
+    <button type="button" class="x" data-logout style="margin-top:8px">Чиқиш</button></div>`;}
+  const pw2=mode==="setup";
+  return `<form class="lockbox" id="lockForm">${brand}
+    ${pw2?`<div class="m" style="font-size:13.5px">Биринчи марта кириш: ўзингизни <b>раҳбар</b> қилиб қўшинг. Бошқа раҳбарлар ва ходимларни кейин «Логин ва пароллар»дан қўшасиз.</div><div class="f"><label for="nmIn">Исмингиз</label><input id="nmIn" autocomplete="off"></div>`:""}
+    <div class="f"><label for="lgIn">Логин</label><input id="lgIn" autocomplete="off" autocapitalize="none" class="pinin" style="letter-spacing:0;font-size:20px"></div>
+    <div class="f"><label for="pwIn">Парол${pw2?" (камида 6 белги)":""}</label><input id="pwIn" type="password" autocomplete="off" class="pinin" style="letter-spacing:.2em;font-size:20px"></div>
+    ${pw2?`<div class="f"><label for="pw2In">Паролни такрорланг</label><input id="pw2In" type="password" autocomplete="off" class="pinin" style="letter-spacing:.2em;font-size:20px"></div>`:""}
+    <div class="err" id="pinErr" hidden></div><button class="add big" type="submit">${pw2?"Сақлаш ва кириш":"Кириш"}</button></form>`;}
+function fbShowLock(){let o=document.getElementById("lockScr");
+  const tag=document.getElementById("meTag");if(tag)tag.textContent=fbOk&&me?"👤 "+(me.role==="admin"?(me.name||me.login)+" · раҳбар":(me.name?me.name+" · ходим":"ходим")):"";
+  const mode=!fbReady?"wait":!fbUser?(fbSetup===false?"setup":"login"):(!fbOk?"wait":(me&&me.role==="staff"&&!me.name&&state.staff.some(x=>x.name)?"pick":""));
+  if(!mode){if(o)o.remove();return;}
+  if(o&&o.dataset.mode===mode)return;
+  if(!o){o=document.createElement("div");o.id="lockScr";document.body.appendChild(o);}
+  o.dataset.mode=mode;o.innerHTML=fbLockHTML(mode);
+  if(mode==="login"||mode==="setup")setTimeout(()=>{const i=o.querySelector("input");if(i&&!TOUCH)i.focus();},50);}
+async function fbInit(){
+  try{const s=await db.collection("meta").doc("setup").get();fbSetup=s.exists;}catch(e){fbSetup=null;}
+  fbAuth.onAuthStateChanged(u=>{if(fbCreating)return;fbAfterSignIn(u);});}
+async function fbAfterSignIn(u){fbUser=u;fbReady=true;
+  if(!u){fbOk=false;me=null;stopSync();for(const c of [...COLS,"members"])state[c]=[];loaded=true;render();showLock();return;}
+  fbOk=false;showLock();
+  try{const m=await db.collection("members").doc(u.uid).get();
+    if(!m.exists){toast("Бу логинга рухсат берилмаган ёки у ўчирилган");await fbAuth.signOut();return;}
+    const d=m.data(),prev=me;
+    me={login:d.login,role:d.role,uid:u.uid,name:d.role==="admin"?(d.name||d.login):((prev&&prev.role==="staff"&&prev.login===d.login&&prev.name)||"")};
+    window._pendL=d.login;try{localStorage.setItem("sp_me",JSON.stringify(me))}catch(e){}
+    if(me.name)seller=me.name;
+    fbOk=true;if(!synced){loaded=false;startSync();}render();showLock();
+  }catch(e){toast(fbErr(e));fbOk=false;showLock();}}
+async function fbTryUnlock(){
+  const g=id=>((document.getElementById(id)||{}).value||"");const err=document.getElementById("pinErr");
+  const lg=g("lgIn").trim().replace(/\s+/g," ").toLowerCase(),pw=g("pwIn");
+  const btn=document.querySelector("#lockForm button[type=submit]");
+  const fail=t=>{err.textContent=t;err.hidden=false;if(btn)btn.disabled=false;};
+  if(!lg||!pw)return fail("Логин ва паролни ёзинг");if(btn)btn.disabled=true;
+  try{
+    if(fbSetup===false){const pw2=g("pw2In"),nm=g("nmIn").trim();
+      if(lg.length<3)return fail("Логин камида 3 белги бўлсин");if(pw.length<6)return fail("Парол камида 6 белги бўлсин");if(pw!==pw2)return fail("Пароллар бир хил эмас");
+      fbCreating=true;const cr=await fbAuth.createUserWithEmailAndPassword(newEmail(),pw);
+      const b=db.batch();b.set(db.collection("logins").doc(await loginKey(lg)),{email:cr.user.email});
+      b.set(db.collection("members").doc(cr.user.uid),{role:"admin",login:lg,name:nm||lg,created:Date.now()});
+      b.set(db.collection("meta").doc("setup"),{at:Date.now()});await b.commit();
+      fbSetup=true;fbCreating=false;await fbAfterSignIn(cr.user);toast("Хуш келибсиз! Энди ходимлар логинини «Логин ва пароллар»дан қўшинг.");return;}
+    const ld=await db.collection("logins").doc(await loginKey(lg)).get();
+    if(!ld.exists)return fail("Логин ёки парол нотўғри");
+    await fbAuth.signInWithEmailAndPassword(ld.data().email,pw);
+  }catch(e){fbCreating=false;fail(fbErr(e));}}
+async function fbCreateAccount(role,lg,name,pw){
+  const F=window.firebase;const sec=F.apps.find(a=>a.name==="sec")||F.initializeApp(FIREBASE_CONFIG,"sec");const sa=sec.auth();
+  try{await sa.setPersistence(F.auth.Auth.Persistence.NONE);}catch(e){}
+  const cr=await sa.createUserWithEmailAndPassword(newEmail(),pw);const email=cr.user.email,uid=cr.user.uid;try{await sa.signOut();}catch(e){}
+  const ms=state.members||[];const old=role==="staff"?ms.filter(m=>m.role==="staff"):ms.filter(m=>m.login===lg&&m.id!==(fbUser&&fbUser.uid));
+  const b=db.batch();b.set(db.collection("logins").doc(await loginKey(lg)),{email});
+  b.set(db.collection("members").doc(uid),{role,login:lg,name,created:Date.now()});
+  for(const m of old){b.delete(db.collection("members").doc(m.id));if(m.login!==lg)b.delete(db.collection("logins").doc(await loginKey(m.login)));}
+  await b.commit();return uid;}
 function setLockMode(m){lockMode=m;const o=document.getElementById("lockScr");if(o){o.innerHTML=lockHTML();const i=o.querySelector("input");if(i)i.focus();}}
 async function tryUnlock(){
+  if(FB)return fbTryUnlock();
   const lg=((document.getElementById("lgIn")||{}).value||"").trim().replace(/\s+/g," ").toLowerCase(),pw=(document.getElementById("pwIn")||{}).value||"";const err=document.getElementById("pinErr");
   if(pinTries>=3){err.textContent="3 марта хато киритилди. Бир дақиқадан кейин уриниб кўринг.";err.hidden=false;return;}
   const h=await sha(lg+":"+pw);const ad=userList().find(x=>x.login===lg&&x.hash===h);const sh=sharedAcc();
@@ -538,7 +614,7 @@ async function tryUnlock(){
   else{pinTries++;if(pinTries>=3)setTimeout(()=>pinTries=0,60000);err.textContent="Логин ёки парол нотўғри"+(pinTries<3?` (яна ${3-pinTries} марта уриниш мумкин)`:"");err.hidden=false;document.getElementById("pwIn").value="";return;}
   try{localStorage.setItem("sp_me",JSON.stringify(me))}catch(e){};pinTries=0;if(me.name)seller=me.name;showLock();render();
 }
-function logout(){me=null;try{localStorage.removeItem("sp_me");sessionStorage.removeItem("sp_me")}catch(e){};closeMenu();showLock();}
+function logout(){if(FB&&fbAuth){try{fbAuth.signOut();}catch(e){}}me=null;try{localStorage.removeItem("sp_me");sessionStorage.removeItem("sp_me")}catch(e){};closeMenu();showLock();}
 const markupPct=()=>{const d=state.settings.find(x=>x.id==="markup");return d&&d.pct!==undefined&&d.pct!==""?+d.pct:18;};
 const priceFromCost=c=>c>0?Math.ceil(c*(1+markupPct()/100)/5)*5:0;
 const MLT={low:"Кам қолган дорилар",dead:"Муддати ўтган дорилар",exp:"Муддати яқин дорилар"};
@@ -639,6 +715,7 @@ function homeView(){
     <div class="kpi"><span class="lbl">Дорихонадаги товар</span><span class="v">${money(stockSummary(branch).cost)}</span><span class="s">${num(stockSummary(branch).units)} дона · сотиш нархида ${money(stockSummary(branch).sale)}</span></div>
     <div class="kpi"><span class="lbl">Таъминотчиларга қарзимиз</span><span class="v ${supOwedTotal()?"neg":""}">${money(supOwedTotal())}</span><span class="s">${state.suppliers.filter(x=>supStats(x.name).owed>0).length} та фирмага</span></div>
   </section>
+  ${sN&&boss()?`<section class="panel"><h2>Демо маълумотлар</h2><div class="m">Ичида ${sN} та намуна (ёлғон) ёзув бор. Ҳақиқий иш бошлашдан олдин ўчиринг. Ходимлар, раҳбарлар ва логинлар ўчмайди.</div><div class="acts" style="justify-content:flex-start"><button class="btn2" data-delallsamples>🗑 Демони ўчириш</button></div></section>`:""}
   ${FB&&!state.meds.length&&!state.sales.length&&boss()?`<section class="panel"><h2>Демо</h2><div class="m">База ҳозир бўш. Дастурни синаб кўриш учун намуна маълумот қўшайми? Кейин «Логин ва парол»даги «намуналарни ўчириш» эмас, менга айтсангиз тозалаб бераман.</div><div class="acts" style="justify-content:flex-start"><button class="btn2 pri" data-seeddemo>Демо маълумот қўшиш</button></div></section>`:""}
   ${state.meds.length?`<div class="grid2">
     <section class="panel"><div class="ph"><h2>Кам қолган дорилар</h2><button class="x" data-medf="low">Ҳаммаси (${low.length}) →</button></div>
@@ -1104,6 +1181,17 @@ function formFields(k){
     ${(()=>{const mm=state.meds.filter(m=>+m.cost>0&&priceFromCost(+m.cost)!==+m.price).length;return mm?`<div class="notice"><span>${mm} та дорининг сотиш нархи ${markupPct()}% га мос эмас (эски фоизда ёки қўлда ўзгартирилган). «Сақлаш»ни боссангиз, тўғриланади.</span></div>`:`<div class="m" style="font-size:13px;color:var(--good)">✓ Ҳамма дорилар нархи ${markupPct()}% бўйича ҳисобланган</div>`;})()}
     <label class="check"><input type="checkbox" id="f_reprice" checked> Дорихонадаги ${n} та дорининг сотиш нархини янги фоиз бўйича қайта ҳисоблаш</label>
     <div class="m" style="font-size:12px;color:var(--muted)">Белгини олиб ташласангиз, фақат янги келадиган дориларга қўлланади. Нархлар 5 ₸ гача юқорига яхлитланади.</div>`;}
+  if(k==="pin"&&FB){const ms=state.members||[],ad=ms.filter(m=>m.role==="admin"),st=ms.find(m=>m.role==="staff"),self=fbUser&&fbUser.uid;
+    return `<div class="lbl">Ходимлар учун умумий логин</div>
+    <div class="m" style="font-size:13px">${st?`Ҳозирги логин: <b>${esc(st.login)}</b>. Алмаштириш учун янги парол ёзинг: эски парол дарров ишламай қолади.`:"Ҳали йўқ. Ҳамма ходимлар шу битта логин ва парол билан киради, кейин рўйхатдан исмини танлайди."}</div>
+    <div class="f"><label for="s_login">Логин</label><input id="s_login" autocapitalize="none" value="${esc(st?st.login:"")}" placeholder="масалан: shipa"></div>
+    <div class="frow"><div class="f"><label for="s_pw">Янги парол (камида 6 белги)</label><input id="s_pw" type="password"></div><div class="f"><label for="s_pw2">Паролни такрорланг</label><input id="s_pw2" type="password"></div></div>
+    <div class="lbl" style="margin-top:8px">Раҳбарлар</div>
+    <div class="list">${ad.map(u=>`<div class="row"><div><div class="t">${esc(u.name||u.login)}${u.id===self?" (сиз)":""}</div><div class="m">логин: <b>${esc(u.login)}</b></div></div>
+      <div class="acts">${ad.length>1&&u.id!==self?(confirmId===("mb:"+u.id)?`<button type="button" class="x ok" data-delmember="${u.id}">Ўчирилсинми?</button><button type="button" class="x" data-cancel>Йўқ</button>`:`<button type="button" class="x" data-ask="mb:${u.id}">Ўчириш</button>`):""}</div></div>`).join("")}</div>
+    <div class="m" style="font-size:12.5px;margin-top:6px">Янги раҳбар қўшиш ёки ўз паролингизни алмаштириш (ўз логинингизни ёзасиз):</div>
+    <div class="frow"><div class="f"><label for="f_uname">Исми</label><input id="f_uname"></div><div class="f"><label for="f_login">Логини</label><input id="f_login" autocapitalize="none"></div></div>
+    <div class="frow"><div class="f"><label for="f_pin">Парол (камида 6 белги)</label><input id="f_pin" type="password"></div><div class="f"><label for="f_pin2">Паролни такрорланг</label><input id="f_pin2" type="password"></div></div>`;}
   if(k==="pin"){const us=userList(),sh=sharedAcc();
     return `<div class="lbl">Ходимлар учун умумий логин</div>
     <div class="m" style="font-size:13px">${sh?`Ҳозирги логин: <b>${esc(sh.login)}</b>. Паролни ёки логинни алмаштириш учун янгисини ёзинг.`:"Ҳали ўрнатилмаган. Ҳамма ходимлар шу битта логин ва парол билан киради."}</div>
@@ -1483,6 +1571,16 @@ async function submitSheet(){
       if(f){toast(`${c} та янгиланди, ${f} тасида хато. «Устама фоизи»ни қайта сақланг.`);}
       else toast(`Устама ${v}%. ${c} та дорининг нархи янгиланди`);render();}
     else toast(`Устама ${v}% қилиб сақланди`);}
+  else if(k==="pin"&&FB){const msgs=[];
+    const lg=val("f_login").replace(/\s+/g," ").toLowerCase(),pw=val("f_pin");
+    if(lg||pw){if(lg.length<3)return fail("Раҳбар логини камида 3 белги бўлсин");if(pw.length<6)return fail("Раҳбар пароли камида 6 белги бўлсин");if(pw!==val("f_pin2"))return fail("Раҳбар пароллари бир хил эмас");
+      if((state.members||[]).some(m=>m.role==="staff"&&m.login===lg))return fail("Бу логин ходимларники. Бошқа логин ёзинг.");
+      try{await fbCreateAccount("admin",lg,val("f_uname")||lg,pw);msgs.push("раҳбар сақланди");}catch(e){return fail(fbErr(e));}}
+    const st=(state.members||[]).find(m=>m.role==="staff"),slg=val("s_login").replace(/\s+/g," ").toLowerCase(),spw=val("s_pw");
+    if(spw||(slg&&(!st||slg!==st.login))){if(slg.length<3)return fail("Умумий логин камида 3 белги бўлсин");if(spw.length<6)return fail("Умумий парол камида 6 белги бўлсин");if(spw!==val("s_pw2"))return fail("Умумий пароллар бир хил эмас");
+      if((state.members||[]).some(m=>m.role==="admin"&&m.login===slg))return fail("Умумий логин раҳбар логинидан бошқача бўлсин");
+      try{await fbCreateAccount("staff",slg,"ходимлар",spw);msgs.push("умумий логин сақланди");}catch(e){return fail(fbErr(e));}}
+    if(!msgs.length){closeSheet();return;}ok=true;toast(msgs.join(", "));}
   else if(k==="pin"){let us=userList(),sh=sharedAcc(),changed=false;const msgs=[];
     const lg=val("f_login").replace(/\s+/g," ").toLowerCase(),pw=val("f_pin");
     if(lg||pw){if(!(lg.length>=3&&lg.length<=30))return fail("Раҳбар логини 3 тадан 30 тагача белги бўлсин");
@@ -1639,6 +1737,10 @@ document.addEventListener("click",e=>{
   if(d.v==="logout"){return logout();}
   if(d.v==="markup"){closeMenu();if(lockOn()&&(!me||me.role!=="admin"))return toast("Фоизни фақат раҳбар ўзгартира олади");return openSheet("markup");}
   if(d.lockmode){return setLockMode(d.lockmode);}
+  if(d.delmember){const m=(state.members||[]).find(x=>x.id===d.delmember);confirmId=null;if(!m)return;
+    (async()=>{try{const b=db.batch();b.delete(db.collection("members").doc(m.id));b.delete(db.collection("logins").doc(await loginKey(m.login)));await b.commit();toast("Ўчирилди");}catch(e){toast(fbErr(e));}
+      const f=document.getElementById("fields");if(f&&sheetKind==="pin")f.innerHTML=formFields("pin");})();return;}
+  if(t.hasAttribute("data-logout")){logout();return;}
   if(d.iam){me={login:window._pendL,name:d.iam,role:"staff",h:window._pendH};try{localStorage.setItem("sp_me",JSON.stringify(me))}catch(e){};seller=d.iam;try{localStorage.setItem("sp_seller",seller)}catch(e){};showLock();render();toast("Хуш келибсиз, "+d.iam);return;}
 
   if(d.deluser){confirmId=null;const us=userList().filter(u=>u.login!==d.deluser);if(!us.length)return toast("Охирги раҳбарни ўчириб бўлмайди");saveUsers(us).then(ok=>{if(ok){toast("Раҳбар ўчирилди");if(me&&me.login===d.deluser)logout();else $("#fields").innerHTML=formFields("pin");}});return;}
@@ -1748,22 +1850,30 @@ let st;document.addEventListener("input",e=>{
 /* ---------- boot ---------- */
 render();
 (async()=>{
+  if(FIREBASE_CONFIG)showLock();
   db=await connectDB();
-  if(!db){loaded=true;$("#main").insertAdjacentHTML("afterbegin",`<div class="notice">Маълумотлар базасига уланиб бўлмади — киритилган ёзувлар сақланмайди. ${FIREBASE_CONFIG?"Интернетни текширинг.":"Саҳифани claude.ai'да ҳисобингизга кириб очинг."}</div>`);return;}
+  if(!db){loaded=true;const o=document.getElementById("lockScr");if(o)o.remove();$("#main").insertAdjacentHTML("afterbegin",`<div class="notice">Маълумотлар базасига уланиб бўлмади — киритилган ёзувлар сақланмайди. ${FIREBASE_CONFIG?"Интернетни текширинг.":"Саҳифани claude.ai'да ҳисобингизга кириб очинг."}</div>`);return;}
+  if(FB){await fbInit();return;}
+  startSync();
+})();
+let unsubs=[];
+function stopSync(){unsubs.forEach(f=>{try{f();}catch(e){}});unsubs=[];synced=false;}
+function startSync(){synced=true;
   const parts={},got=new Set();let total=0,rq=0,full=new Set();
   const later=()=>{if(rq)return;rq=setTimeout(()=>{rq=0;render();},40);};
   const merge=c=>{const m=new Map();for(const k in parts[c])for(const d of parts[c][k])m.set(d.id,d);state[c]=[...m.values()];};
-  COLS.forEach(c=>{parts[c]={};const n=FB?1:(SHARDS[c]||1);
+  (FB?[...COLS,"members"]:COLS).forEach(c=>{parts[c]={};const n=FB?1:(SHARDS[c]||1);
     const qs=[["all",FB?db.collection(c):db.collection(c).limit(1000)]];
     if(n>1)for(let k=0;k<n;k++)qs.push(["s"+k,db.collection(c).where("sh","==",k).limit(1000)]);
     total+=qs.length;
-    qs.forEach(([key,qr])=>qr.onSnapshot(snap=>{parts[c][key]=snap.docs.map(d=>({id:d.id,...d.data()}));merge(c);
+    qs.forEach(([key,qr])=>unsubs.push(qr.onSnapshot(snap=>{parts[c][key]=snap.docs.map(d=>({id:d.id,...d.data()}));merge(c);
       if(!FB&&key!=="all"&&snap.docs.length>=1000)full.add(c);
       got.add(c+"/"+key);if(!loaded&&got.size===total){loaded=true;setTimeout(backfillShards,3000);}
       if(full.size&&!window._fullWarn&&boss()){window._fullWarn=1;toast("Маълумот жуда кўпайди ("+[...full].join(", ")+"). Дастурни расмий версияга ўтказиш вақти келди.");}
-      later();},()=>toast("Маълумот юкланмади")));
+      if(FB)showLock();
+      later();},()=>{got.add(c+"/"+key);if(!loaded&&got.size===total)loaded=true;later();})));
   });
-})();
+}
 async function seedDemo(){const t=todayISO(),D=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d);};
   const B=BRANCHES;const meds=[["4870000000011","Парацетамол таб 500 мг №10",210,250,[[0,40,D(400)],[1,25,D(180)]]],["4870000000028","Ибупрофен таб 200 мг №20",380,450,[[0,30,D(240)],[1,0,""]]],["4870000000035","Но-шпа таб 40 мг №24",1450,1715,[[0,12,D(500)],[1,8,D(90)]]],
     ["4870000000042","Смекта пор 3 г №10",2100,2480,[[0,3,D(300)],[1,6,D(-20)]]],["4870000000059","Називин спрей 0,05% 10 мл",1700,2010,[[0,15,D(60)],[1,10,D(420)]]],["4870000000066","Аскорбиновая кислота 50 мг №200",240,285,[[0,50,D(700)],[1,40,D(260)]]],
@@ -1781,8 +1891,8 @@ async function seedDemo(){const t=todayISO(),D=n=>{const d=new Date();d.setDate(
 async function connectDB(){
   if(FIREBASE_CONFIG){try{
     const ld=u=>new Promise((res,rej)=>{const sc=document.createElement("script");sc.src=u;sc.onload=res;sc.onerror=rej;document.head.appendChild(sc);});
-    await ld("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");await ld("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js");
-    if(!window.firebase.apps.length)window.firebase.initializeApp(FIREBASE_CONFIG);FB=true;return window.firebase.firestore();}catch(e){return null;}}
+    await ld("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");await ld("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js");await ld("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js");
+    if(!window.firebase.apps.length)window.firebase.initializeApp(FIREBASE_CONFIG);FB=true;fbAuth=window.firebase.auth();return window.firebase.firestore();}catch(e){return null;}}
   try{return window.claude&&window.claude.use?await window.claude.use("db"):null;}catch(e){return null;}}
 async function backfillShards(){if(FB||!db)return;
   const todo=[];for(const c of Object.keys(SHARDS))for(const r of state[c]||[])if(r.sh===undefined)todo.push([c,r.id]);
