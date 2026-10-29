@@ -992,11 +992,11 @@ function customersView(){
 function staffView(){
   const s=state.staff.filter(inBranch);
   return `<section class="panel">
-   <div class="acts" style="justify-content:flex-start"><button class="btn2 pri" data-newstaff>+ Ходим қўшиш</button></div>
+   ${boss()?`<div class="acts" style="justify-content:flex-start"><button class="btn2 pri" data-newstaff>+ Ходим қўшиш</button></div>`:""}
    <div class="m" style="font-size:12.5px;color:var(--muted)">Бу ерга қўшилган ходимлар умумий логин билан киргач, рўйхатдан ўз исмини танлайди. Сотувларга уларнинг исми ёзилади.</div>
    <div class="sum">${BRANCHES.map(b=>`<span>${b}: <b>${state.staff.filter(x=>x.branch===b).length} киши</b></span>`).join("")}<span>Ойликлар жами: <b>${money(sum(s,"salary"))}</b></span></div>
    <div class="list">${s.sort((a,b)=>(a.name||"").localeCompare(b.name||"")).map(x=>`<div class="row"><div><div class="t">${esc(x.name)}</div><div class="m">${esc(x.role||"")} ${bchip(x.branch)}</div><div class="m">${esc(x.phone||"")}${x.start?" · ишга кирган: "+nice(x.start):""}</div></div>
-   <div class="acts">${x.salary?`<span class="amt">${money(x.salary)}</span>`:""}${editBtn("staff",x.id)}${delBtn("staff",x.id)}</div></div>`).join("")||`<div class="empty">Ходим қўшилмаган</div>`}</div></section>`;
+   <div class="acts">${x.salary?`<span class="amt">${money(x.salary)}</span>`:""}${boss()?editBtn("staff",x.id)+delBtn("staff",x.id):""}</div></div>`).join("")||`<div class="empty">Ходим қўшилмаган</div>`}</div></section>`;
 }
 function pricesView(){
   const rows=priceRows();
@@ -1285,12 +1285,12 @@ function formFields(k){
 }
 const KINDS=[["recv","Товар келди"],["supplier","Таъминотчи"],["price","Фирма нархи"],["in","Кирим"],["out","Чиқим"],["debt","Қарз"],["order","Буюртма"],["customer","Мижоз"],["staff","Ходим"]];
 const TITLES={adddebt:"Қарзга қўшиш",bulkpl:"Ҳамма прайсни бирданига юклаш",remind:"Бугун эслатиш керак",sadj:"Қарзни қўлда ўзгартириш",medlist:"Дорилар",markup:"Устама фоизи",pin:"Логин ва пароллар",supbuy:"Фирмадан қарзга олдик",pay:"Қарз тўлови",med:"Дорини ўзгартириш",spay:"Таъминотчига тўлов",close:"Кассани ёпиш",move:"Филиалга кўчириш",count:"Санаш (инвентаризация)",ret:"Мижоз дорини қайтарди",import:"Excel файлни юклаш"};
-function openSheet(k){
+function openSheet(k){if(k==="staff"&&!boss())k="in";
   sheetKind=k||KIND_FOR_VIEW[view];
   const fixed=!!editRec||!!editPrice||["bulkpl","remind","sadj","medlist","markup","pin","supbuy","pay","med","spay","close","move","count","ret","import"].includes(sheetKind);
   $("#sheetHost").innerHTML=`<div class="sheet-bg" id="sheetBg"><form class="sheet" id="sheet" novalidate>
     <h2>${editRec?"Ўзгартириш":TITLES[sheetKind]||"Янги ёзув"}</h2>
-    ${fixed?"":`<div class="kinds">${KINDS.filter(([v])=>boss()||v!=="price").map(([v,l])=>`<button type="button" data-kind="${v}" aria-pressed="${v===sheetKind}">${l}</button>`).join("")}</div>`}
+    ${fixed?"":`<div class="kinds">${KINDS.filter(([v])=>boss()||(v!=="price"&&v!=="staff")).map(([v,l])=>`<button type="button" data-kind="${v}" aria-pressed="${v===sheetKind}">${l}</button>`).join("")}</div>`}
     <div id="fields" style="display:flex;flex-direction:column;gap:10px">${formFields(sheetKind)}</div>
     <div class="err" id="ferr" hidden></div>
     <div class="btns">${["medlist","remind"].includes(sheetKind)?"":`<button type="button" data-close>Бекор</button>`}<button type="submit" class="add" id="saveBtn">${sheetKind==="import"||sheetKind==="bulkpl"?"Юклаш":sheetKind==="remind"?"Тайёр":sheetKind==="medlist"?"Ёпиш":"Сақлаш"}</button></div></form></div>`;
@@ -1716,7 +1716,7 @@ async function submitSheet(){
     ok=await saveRec("orders",od);}
   else if(k==="customer"){if(!val("f_name"))return fail("Исмни киритинг");
     ok=await saveRec("customers",{name:val("f_name"),phone:val("f_phone"),branch:val("f_branch"),note:val("f_note")});}
-  else{if(!val("f_name"))return fail("Исмни киритинг");
+  else{if(!boss())return fail("Ходимни фақат раҳбар қўша олади");if(!val("f_name"))return fail("Исмни киритинг");
     ok=await saveRec("staff",{name:val("f_name"),role:val("f_role"),branch:val("f_branch"),phone:val("f_phone"),salary:+val("f_salary")||0,start:val("f_start")});}
   }finally{saving=false;}
   if(ok){closeSheet();toast("Сақланди");}
@@ -1793,7 +1793,7 @@ document.addEventListener("click",e=>{
   if(d.medlist){medListKind=d.medlist;return openSheet("medlist");}
   if(d.medopen){medOpen=medOpen===d.medopen?null:d.medopen;return render();}
   if(d.pick){const e=document.getElementById(d.pick);if(e){e.value=d.val;e.dispatchEvent(new Event("change",{bubbles:true}));}return;}
-  if(t.hasAttribute("data-newstaff")){editRec=null;return openSheet("staff");}
+  if(t.hasAttribute("data-newstaff")){if(!boss())return;editRec=null;return openSheet("staff");}
   if(t.hasAttribute("data-newsup")){editRec=null;return openSheet("supplier");}
   if(d.pq!==undefined){pq=d.pq;render();const x=$("#pq");if(x&&!d.pq)x.focus();window.scrollTo(0,0);return;}
   if(t.hasAttribute("data-newprice")){editPrice=null;return openSheet("price");}
@@ -1822,7 +1822,7 @@ document.addEventListener("click",e=>{
   if(t.hasAttribute("data-close"))return closeSheet();
   if(d.ask){confirmId=d.ask;if(sheetKind==="pin"&&$("#sheetBg")){$("#fields").innerHTML=formFields("pin");return;}return render();}
   if(t.hasAttribute("data-cancel")){confirmId=null;if(sheetKind==="pin"&&$("#sheetBg")){$("#fields").innerHTML=formFields("pin");return;}return render();}
-  if(d.del){const c=d.del,id=d.id;confirmId=null;delRec(c,id);return;}
+  if(d.del){const c=d.del,id=d.id;confirmId=null;if(c==="staff"&&!boss())return;delRec(c,id);return;}
 });
 document.addEventListener("submit",e=>{e.preventDefault();if(e.target.id==="lockForm")return tryUnlock();submitSheet();});
 let kb="",kbStart=0,kbLast=0;
@@ -1899,7 +1899,7 @@ function startSync(){synced=true;
       if(!FB&&key!=="all"&&snap.docs.length>=1000)full.add(c);
       got.add(c+"/"+key);if(!loaded&&got.size===total){loaded=true;setTimeout(backfillShards,3000);}
       if(full.size&&!window._fullWarn&&boss()){window._fullWarn=1;toast("Маълумот жуда кўпайди ("+[...full].join(", ")+"). Дастурни расмий версияга ўтказиш вақти келди.");}
-      if(FB){showLock();if(loaded&&boss()&&!window._impDone&&!state.settings.some(x=>x.id==="imported")){window._impDone=1;(async()=>{const D=START_DATA;const b=db.batch();for(const c in D)for(const id in D[c])if(!state[c].some(x=>x.id===id))b.set(db.collection(c).doc(id),D[c][id]);b.set(db.collection("settings").doc("imported"),{at:Date.now()});try{await b.commit();toast("Ходимлар ва фирмалар эски дастурдан ўтказилди");}catch(e){window._impDone=0;}})();}if(loaded&&boss()&&!window._demoGone){const ls=COLS.flatMap(c=>state[c].filter(r=>r.sample).map(r=>[c,r.id]));if(ls.length){window._demoGone=1;pool(ls,6,async([c,id])=>{try{await db.collection(c).doc(id).delete();}catch(e){}}).then(()=>toast("Демо маълумотлар ўчирилди"));}}}
+      if(FB){showLock();if(loaded&&boss()&&!window._clDone&&!state.settings.some(x=>x.id==="cleaned1")){window._clDone=1;const CUT=1793275613751;const ls=["sales","debts","orders","customers","meds","supplies","shifts","pricelists","stocklog"].flatMap(c=>state[c].filter(r=>!(r.created>CUT)).map(r=>[c,r.id]));pool(ls,6,async([c,id])=>{try{await db.collection(c).doc(id).delete();}catch(e){}}).then(()=>db.collection("settings").doc("cleaned1").set({at:Date.now()})).then(()=>{if(ls.length)toast("Синов ёзувлари ўчирилди, база тоза");}).catch(()=>{window._clDone=0;});}if(loaded&&boss()&&!window._impDone&&!state.settings.some(x=>x.id==="imported")){window._impDone=1;(async()=>{const D=START_DATA;const b=db.batch();for(const c in D)for(const id in D[c])if(!state[c].some(x=>x.id===id))b.set(db.collection(c).doc(id),D[c][id]);b.set(db.collection("settings").doc("imported"),{at:Date.now()});try{await b.commit();toast("Ходимлар ва фирмалар эски дастурдан ўтказилди");}catch(e){window._impDone=0;}})();}if(loaded&&boss()&&!window._demoGone){const ls=COLS.flatMap(c=>state[c].filter(r=>r.sample).map(r=>[c,r.id]));if(ls.length){window._demoGone=1;pool(ls,6,async([c,id])=>{try{await db.collection(c).doc(id).delete();}catch(e){}}).then(()=>toast("Демо маълумотлар ўчирилди"));}}}
       later();},()=>{got.add(c+"/"+key);if(!loaded&&got.size===total)loaded=true;later();})));
   });
 }
