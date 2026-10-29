@@ -1110,7 +1110,9 @@ function render(){
   showLock();
   const views={zakaz:orderBlock,prices:pricesView,suppliers:suppliersView,report:reportView,home:homeView,sell:sellView,meds:medsView,money:moneyView,debts:debtsView,orders:ordersView,customers:customersView,staff:staffView};
   const a=document.activeElement,fid=a&&["search","msearch","pq","disc"].includes(a.id)?a.id:null,pos=fid?a.selectionStart:0;
-  $("#main").innerHTML=remBanner()+expBanner()+(MORE.includes(view)?moreSeg():"")+views[view]();
+  const html=remBanner()+expBanner()+(MORE.includes(view)?moreSeg():"")+views[view]();
+  if(fid&&document.getElementById(fid)===a&&$("#main").contains(a)){const tmp=document.createElement("div");tmp.innerHTML=html;morphKids($("#main"),tmp,fid);}
+  else $("#main").innerHTML=html;
   if(!remindAuto&&(!lockOn()||validMe())&&!$("#sheetBg")&&dueRem().length){remindAuto=true;let seen=null;const key="shipa_rem_"+todayISO();try{seen=localStorage.getItem(key);localStorage.setItem(key,"1");}catch(e){}if(!seen)setTimeout(()=>{if(!$("#sheetBg"))openSheet("remind");},400);}
   if(!expAuto&&(!lockOn()||validMe())&&!$("#sheetBg")&&expRem().length){expAuto=true;let seen=null;const key="shipa_exp_"+todayISO();try{seen=localStorage.getItem(key);localStorage.setItem(key,"1");}catch(e){}
     if(!seen)setTimeout(()=>{if($("#sheetBg")){expPending=true;return;}medListKind="exp";openSheet("medlist");},700);}
@@ -1121,6 +1123,19 @@ function render(){
   else if((view==="meds"||view==="sell")&&!$("#sheetBg")&&!(a&&a.closest&&a.closest("#main")&&/^(INPUT|SELECT)$/.test(a.tagName))){const sc=$("#scan");if(sc)sc.focus({preventScroll:true});}
 }
 
+function morphKids(from,to,keep){const fc=[...from.childNodes],tc=[...to.childNodes];
+  for(let i=0;i<Math.max(fc.length,tc.length);i++){if(!fc[i])from.appendChild(tc[i]);else if(!tc[i])fc[i].remove();else morphNode(fc[i],tc[i],keep);}}
+function morphNode(f,t,keep){
+  if(f.nodeType!==t.nodeType||f.nodeName!==t.nodeName){f.replaceWith(t);return;}
+  if(f.nodeType===3||f.nodeType===8){if(f.nodeValue!==t.nodeValue)f.nodeValue=t.nodeValue;return;}
+  if(f.nodeType!==1){f.replaceWith(t);return;}
+  if(keep&&f.id===keep&&t.id===keep)return;
+  if(f.id!==t.id&&(f.id===keep)){f.replaceWith(t);return;}
+  for(const at of [...f.attributes])if(!t.hasAttribute(at.name))f.removeAttribute(at.name);
+  for(const at of [...t.attributes])if(f.getAttribute(at.name)!==at.value)f.setAttribute(at.name,at.value);
+  if(f.tagName==="INPUT"||f.tagName==="TEXTAREA"){f.value=t.value;return;}
+  if(f.tagName==="SELECT"){f.replaceWith(t);return;}
+  morphKids(f,t,keep);}
 /* ---------- add sheet ---------- */
 let sheetKind="in";
 const KIND_FOR_VIEW={zakaz:"recv",suppliers:"supplier",report:"in",home:"in",sell:"recv",meds:"recv",money:"in",debts:"debt",orders:"order",customers:"customer",staff:"staff"};
