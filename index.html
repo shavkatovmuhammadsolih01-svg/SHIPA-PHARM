@@ -281,6 +281,7 @@ button.wa{border:0;cursor:pointer}
 .add[disabled]{opacity:.5}
 .toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:13.5px;z-index:30}
 @media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(16px);opacity:.6}}}
+#branchSeg button[hidden]{display:none!important}
 </style>
 
 <header>
@@ -1106,9 +1107,11 @@ function expBanner(){const n=expRem().length,d=deadRem().length;if(!n&&!d)return
 function dueRem(){const t=todayISO();return state.debts.filter(inBranch).filter(d=>left(d)>0&&d.due&&daysTo(d.due)<=3&&!(d.reminded||[]).includes(t)).sort((a,b)=>a.due.localeCompare(b.due));}
 function remLabel(d){const k=daysTo(d.due);return k<0?`<span class="dd bad">${-k} кун ўтди</span>`:k===0?`<span class="dd bad">бугун қайтариш куни</span>`:`<span class="dd warn">${k} кун қолди</span>`;}
 function remBanner(){const r=dueRem();return r.length?`<button type="button" class="rembar" data-remind>🔔 Бугун <b>${r.length} та</b> қарздорга эслатиш керак<span>Кўриш →</span></button>`:"";}
+function myBranch(){if(boss()||!me||!me.name)return null;const x=state.staff.find(z=>z.name===me.name);return x&&BRANCHES.includes(x.branch)?x.branch:null;}
 function render(){
   EXP_WARN=Math.round(expMonths()*30.44);
   if(!loaded&&db)return;
+  {const mb=myBranch();if(mb)branch=mb;document.querySelectorAll("#branchSeg button").forEach(b=>{b.hidden=!!mb&&b.dataset.b!==mb;b.setAttribute("aria-pressed",b.dataset.b===branch?"true":"false");});}
   showLock();
   const views={zakaz:orderBlock,prices:pricesView,suppliers:suppliersView,report:reportView,home:homeView,sell:sellView,meds:medsView,money:moneyView,debts:debtsView,orders:ordersView,customers:customersView,staff:staffView};
   const a=document.activeElement,fid=a&&["search","msearch","pq","disc"].includes(a.id)?a.id:null,pos=fid?a.selectionStart:0;
@@ -1758,7 +1761,7 @@ document.addEventListener("click",e=>{
   if(t.hasAttribute("data-remind")){editRec=null;return openSheet("remind");}
   if(d.remdone)return markRem(d.remdone);
   if(t.hasAttribute("data-menu"))return openMenu();
-  if(d.b){branch=d.b;document.querySelectorAll("#branchSeg button").forEach(b=>b.setAttribute("aria-pressed",b===t));return render();}
+  if(d.b){if(myBranch())return;branch=d.b;document.querySelectorAll("#branchSeg button").forEach(b=>b.setAttribute("aria-pressed",b===t));return render();}
   if(d.v==="lock"){closeMenu();if(lockOn()&&(!me||me.role!=="admin"))return toast("Бу бўлимга фақат раҳбар киради");return openSheet("pin");}
   if(d.v==="logout"){return logout();}
   if(d.v==="markup"){closeMenu();if(lockOn()&&(!me||me.role!=="admin"))return toast("Фоизни фақат раҳбар ўзгартира олади");return openSheet("markup");}
