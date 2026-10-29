@@ -392,6 +392,7 @@ function toast(t){const el=document.createElement("div");el.className="toast";el
 /* Расмий (ўз сервер) версия учун: Firebase лойиҳаси калитларини шу ерга ёзинг, масалан
    const FIREBASE_CONFIG={apiKey:"...",authDomain:"...",projectId:"..."};
    null бўлса, дастур Claude базаси билан ишлайди. Қолган код ўзгармайди. */
+const START_DATA={"staff": {"8m1v5sbvpibtk7xg79av": {"branch": "Қожақўрғон", "created": 1791642166578, "name": "Гузал Рустамбекова", "phone": "+77752178030", "role": "Фармацевт и кассир", "salary": 85000, "start": "2025-01-01"}, "kgfw34ike0nvq1ph94j8": {"branch": "Қожақўрғон", "created": 1791642099125, "name": "Дилноза Имамова", "phone": "+7 702 688 4142", "role": "Фармацевт и кассир", "salary": 85000, "start": "2020-01-01"}}, "suppliers": {"sup_atamiras": {"created": 1791099000000, "name": "Атамирас", "note": "", "phone": "+77761673037"}, "sup_orken": {"created": 1791099000001, "name": "Өркен", "note": "", "phone": "+7 707 357 6858"}, "sup_inkar": {"created": 1791629000000, "name": "Инкар", "note": "", "phone": "+7 775 562 99 79"}, "sup_dikfarm": {"created": 1791099000004, "name": "Дик Фарм", "note": "", "phone": "+7 747 395 1548"}, "sup_aptekabesh": {"created": 1791099000005, "name": "Аптека 5", "note": "", "phone": "+7 701 724 14 10"}, "sup_medservice": {"created": 1791099000003, "name": "Медсервис Плюс", "note": "", "phone": "+7 701 449 62 53"}}, "settings": {"expwarn": {"months": 9}, "markup": {"pct": 18}}};
 const FIREBASE_CONFIG={apiKey:"AIzaSyCccNxd6SuqlhF53LmiLvUTkKtQCiRe-cM",authDomain:"shipa-pharm.firebaseapp.com",projectId:"shipa-pharm",storageBucket:"shipa-pharm.firebasestorage.app",messagingSenderId:"916127166286",appId:"1:916127166286:web:3e23d57b1267515441381f"};
 let FB=false;
 const SHARDS={sales:12,meds:4,stocklog:4,debts:2,supplies:2,orders:2,customers:2};
@@ -927,12 +928,13 @@ function debtRow(d){
       <div><span class="lbl">Олган куни</span><span class="dd">${nice(d.date)}</span></div>
       <div><span class="lbl">Қайтариш куни</span>${due}</div>
     </div>
+    ${(d.adds||[]).length?`<div class="paylist">Қўшилган қарзлар: ${d.adds.map(x=>nice(x.date)+" — "+num(x.amount)+(x.items?" ("+esc(x.items)+")":"")).join(", ")}</div>`:""}
     ${p?`<div class="m">Жами ${money(d.amount)} · тўлади ${money(p)}</div>`:""}
     ${pays.length?`<div class="paylist">Тўловлар: ${pays.map((x,i)=>nice(x.date)+" — "+num(x.amount)+(full?(confirmId===("py:"+d.id+":"+i)?` <button class="x ok" data-delpay="${d.id}" data-i="${i}">ўчирилсинми?</button><button class="x" data-cancel>йўқ</button>`:` <button class="x" data-ask="py:${d.id}:${i}">×</button>`):"")).join(", ")}</div>`:""}
     <div class="m">${d.phone?esc(d.phone)+" · ":""}${bchip(d.branch)}</div>
     ${full||l>0?`<div class="dacts">${l>0?`<button class="pay" data-pay="${d.id}">Тўлов</button>`:""}
       ${full&&l>0&&waNum(d.phone)?`<a class="pay" href="https://wa.me/${waNum(d.phone)}?text=${encodeURIComponent(remindText(d))}" target="_blank" rel="noopener">WhatsApp эслатма</a>`:""}
-      ${full?`<button class="btn2" data-ddebt="${d.id}">+ Яна қарз</button>`+editBtn("debts",d.id)+delBtn("debts",d.id):""}</div>`:""}
+      ${full?`<button class="btn2 pri" data-ddebt="${d.id}">+ Қарз қўшиш</button>`+editBtn("debts",d.id)+delBtn("debts",d.id):""}</div>`:""}
   </div>`;
 }
 function debtsView(){
@@ -1260,6 +1262,10 @@ function formFields(k){
     <div class="f"><label for="f_items">Нима олди</label><input autocomplete="off" id="f_items" placeholder="масалан: дорилар, 3 хил"></div>
     <div class="frow"><div class="f"><label for="f_amount">Қарз суммаси (₸)</label><input autocomplete="off" id="f_amount" type="number" inputmode="numeric" min="0"></div>${dateF()}</div>
     <div class="frow"><div class="f"><label for="f_due">Қачон қайтаради</label><input autocomplete="off" id="f_due" type="date"></div>${branchSel()}</div>`;
+  if(k==="adddebt"){const d=state.debts.find(x=>x.id===payFor);if(!d)return `<div class="empty">Қарз топилмади</div>`;
+    return `<div class="sum"><span><b>${esc(d.name)}</b> — ҳозирги қарз: <b class="neg">${money(left(d))}</b></span></div>
+    <div class="frow"><div class="f"><label for="f_amount">Яна қанча қарз олди (₸)</label><input autocomplete="off" id="f_amount" type="number" inputmode="numeric" min="0"></div>${dateF()}</div>
+    <div class="f"><label for="f_items">Нима олди (ихтиёрий)</label><input autocomplete="off" id="f_items" placeholder="масалан: Парацетамол"></div>`;}
   if(k==="pay"){const d=state.debts.find(x=>x.id===payFor);if(!d)return `<div class="empty">Қарз топилмади</div>`;
     return `<div class="sum"><span><b>${esc(d.name)}</b> — қолган қарз: <b class="neg">${money(left(d))}</b></span></div>
     <div class="frow"><div class="f"><label for="f_amount">Қанча тўлади (₸)</label><input autocomplete="off" id="f_amount" type="number" inputmode="numeric" min="0" value="${left(d)}"></div>${dateF()}</div>
@@ -1275,7 +1281,7 @@ function formFields(k){
     <div class="frow"><div class="f"><label for="f_salary">Ойлик (₸)</label><input autocomplete="off" id="f_salary" type="number" inputmode="numeric" min="0"></div><div class="f"><label for="f_start">Ишга кирган сана</label><input autocomplete="off" id="f_start" type="date"></div></div>`;
 }
 const KINDS=[["recv","Товар келди"],["supplier","Таъминотчи"],["price","Фирма нархи"],["in","Кирим"],["out","Чиқим"],["debt","Қарз"],["order","Буюртма"],["customer","Мижоз"],["staff","Ходим"]];
-const TITLES={bulkpl:"Ҳамма прайсни бирданига юклаш",remind:"Бугун эслатиш керак",sadj:"Қарзни қўлда ўзгартириш",medlist:"Дорилар",markup:"Устама фоизи",pin:"Логин ва пароллар",supbuy:"Фирмадан қарзга олдик",pay:"Қарз тўлови",med:"Дорини ўзгартириш",spay:"Таъминотчига тўлов",close:"Кассани ёпиш",move:"Филиалга кўчириш",count:"Санаш (инвентаризация)",ret:"Мижоз дорини қайтарди",import:"Excel файлни юклаш"};
+const TITLES={adddebt:"Қарзга қўшиш",bulkpl:"Ҳамма прайсни бирданига юклаш",remind:"Бугун эслатиш керак",sadj:"Қарзни қўлда ўзгартириш",medlist:"Дорилар",markup:"Устама фоизи",pin:"Логин ва пароллар",supbuy:"Фирмадан қарзга олдик",pay:"Қарз тўлови",med:"Дорини ўзгартириш",spay:"Таъминотчига тўлов",close:"Кассани ёпиш",move:"Филиалга кўчириш",count:"Санаш (инвентаризация)",ret:"Мижоз дорини қайтарди",import:"Excel файлни юклаш"};
 function openSheet(k){
   sheetKind=k||KIND_FOR_VIEW[view];
   const fixed=!!editRec||!!editPrice||["bulkpl","remind","sadj","medlist","markup","pin","supbuy","pay","med","spay","close","move","count","ret","import"].includes(sheetKind);
@@ -1692,6 +1698,11 @@ async function submitSheet(){
     const dd={name:val("f_name"),phone:val("f_phone"),items:val("f_items"),amount:a,date:val("f_date")||todayISO(),due:val("f_due"),branch:val("f_branch")};
     if(editRec){const r=state.debts.find(x=>x.id===editRec.id);if(r&&a<paid(r))return fail("Сумма тўланган пулдан ("+money(paid(r))+") кам бўлмасин");}else dd.payments=[];
     const isNew=!editRec;ok=await saveRec("debts",dd);if(ok&&isNew)await ensureCustomer(dd.name,dd.phone,dd.branch);}
+  else if(k==="adddebt"){const d=state.debts.find(x=>x.id===payFor);const a=+val("f_amount");
+    if(!d)return fail("Қарз топилмади");if(!(a>0))return fail("Суммани киритинг");
+    const date=val("f_date")||todayISO(),it=val("f_items");
+    ok=await updRec("debts",d.id,{amount:(+d.amount||0)+a,items:it?(d.items?d.items+", ":"")+it:(d.items||""),adds:[...(d.adds||[]),{date,amount:a,items:it}]});
+    if(ok)setTimeout(()=>toast(d.name+": "+money(a)+" қўшилди"),300);}
   else if(k==="pay"){const d=state.debts.find(x=>x.id===payFor);const a=+val("f_amount");
     if(!d)return fail("Қарз топилмади");if(!(a>0))return fail("Суммани киритинг");if(a>left(d))return fail("Тўлов қолган қарздан ("+money(left(d))+") кўп бўлмасин");
     const date=val("f_date")||todayISO();
@@ -1732,7 +1743,7 @@ document.addEventListener("click",e=>{
   const d=t.dataset;
   if(t.id==="addBtn")return openSheet();
   if(d.cdebt){const c=state.customers.find(x=>x.id===d.cdebt);if(!c)return;prefDebt={name:c.name,phone:c.phone,branch:c.branch};editRec=null;return openSheet("debt");}
-  if(d.ddebt){const r=state.debts.find(x=>x.id===d.ddebt);if(!r)return;prefDebt={name:r.name,phone:r.phone,branch:r.branch};editRec=null;return openSheet("debt");}
+  if(d.ddebt){payFor=d.ddebt;editRec=null;return openSheet("adddebt");}
   if(t.hasAttribute("data-saveexpm")){const v=Math.round(+val("f_expm"));if(!(v>=1&&v<=24))return toast("1 дан 24 гача ой ёзинг");
     setDoc("settings","expwarn",{months:v}).then(ok=>{if(ok){EXP_WARN=Math.round(v*30.44);const x=state.settings.find(z=>z.id==="expwarn");if(x)x.months=v;else state.settings.push({id:"expwarn",months:v});toast("Энди муддатига "+v+" ой қолганда огоҳлантиради");refreshML();}});return;}
   if(d.aside){const m=state.meds.find(x=>x.id===d.aside);if(!m)return;const nb=(m.batches||[]).map(b=>+b.qty>0&&nearB(b)&&(branch==="all"||b.branch===branch)?{...b,aside:true}:b);t.disabled=true;
@@ -1885,7 +1896,7 @@ function startSync(){synced=true;
       if(!FB&&key!=="all"&&snap.docs.length>=1000)full.add(c);
       got.add(c+"/"+key);if(!loaded&&got.size===total){loaded=true;setTimeout(backfillShards,3000);}
       if(full.size&&!window._fullWarn&&boss()){window._fullWarn=1;toast("Маълумот жуда кўпайди ("+[...full].join(", ")+"). Дастурни расмий версияга ўтказиш вақти келди.");}
-      if(FB){showLock();if(loaded&&boss()&&!window._demoGone){const ls=COLS.flatMap(c=>state[c].filter(r=>r.sample).map(r=>[c,r.id]));if(ls.length){window._demoGone=1;pool(ls,6,async([c,id])=>{try{await db.collection(c).doc(id).delete();}catch(e){}}).then(()=>toast("Демо маълумотлар ўчирилди"));}}}
+      if(FB){showLock();if(loaded&&boss()&&!window._impDone&&!state.settings.some(x=>x.id==="imported")){window._impDone=1;(async()=>{const D=START_DATA;const b=db.batch();for(const c in D)for(const id in D[c])if(!state[c].some(x=>x.id===id))b.set(db.collection(c).doc(id),D[c][id]);b.set(db.collection("settings").doc("imported"),{at:Date.now()});try{await b.commit();toast("Ходимлар ва фирмалар эски дастурдан ўтказилди");}catch(e){window._impDone=0;}})();}if(loaded&&boss()&&!window._demoGone){const ls=COLS.flatMap(c=>state[c].filter(r=>r.sample).map(r=>[c,r.id]));if(ls.length){window._demoGone=1;pool(ls,6,async([c,id])=>{try{await db.collection(c).doc(id).delete();}catch(e){}}).then(()=>toast("Демо маълумотлар ўчирилди"));}}}
       later();},()=>{got.add(c+"/"+key);if(!loaded&&got.size===total)loaded=true;later();})));
   });
 }
