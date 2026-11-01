@@ -282,6 +282,7 @@ button.wa{border:0;cursor:pointer}
 .toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:13.5px;z-index:30}
 @media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(16px);opacity:.6}}}
 #branchSeg button[hidden]{display:none!important}
+.paygrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.paygrid .btn2{padding:14px 8px;font-size:16px}
 </style>
 
 <header>
@@ -316,7 +317,8 @@ const MORE=[];
 const SECTIONS=[["home","Умумий","бугунги касса, огоҳлантиришлар",'<path d="M4 13h4v7H4zM10 8h4v12h-4zM16 4h4v16h-4z"/>'],
  ["sell","Сотув","дорини сканерлаб сотиш",'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/>'],
  ["meds","Дорилар","бор дорилар, қолдиқ, муддат",'<path d="M4 5v14M7 5v14M10 5v14M14 5v14M16 5v14M20 5v14"/>'],
- ["money","Касса","кунлик ва ойлик ҳисоб",'<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/>'],
+ ["kassa2","2-касса","олдинги кунлар пули, чиқим ва тўловлар",'<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 12h10M12 9v6"/>'],
+ ["money","1-касса","бугунги савдо, кунлик ва ойлик ҳисоб",'<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/>'],
  ["debts","Қарз дафтари","қарздорлар ва тўловлар",'<path d="M5 3h11l3 3v15H5zM9 9h6M9 13h6M9 17h3"/>'],
  ["prices","Нархлар","қайси фирмада арзон",'<path d="M3 12l9-9h9v9l-9 9z"/><circle cx="16" cy="8" r="1.5"/>'],
  ["zakaz","Заказ","тугаган дорилар, энг арзон фирма",'<path d="M3 4h2l2.5 11h10.5l2-8H6.5"/><circle cx="9" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/>'],
@@ -343,7 +345,7 @@ let db=null, loaded=false, view="home", lastMore="meds", branch="all", q="", con
 let monthSel=null, daySel=null, orderFilter="open", debtFilter="open", medFilter="all", payFor=null;
 let scanCode="", editMed=null, prefillCode="";
 let supOpen=null, closeBr="", repFrom="", repTo="", seller=(()=>{try{return localStorage.getItem("sp_seller")||""}catch(e){return""}})();
-let cart=[], payType="cash", saleBranch="", saleMsg=null, msq="", selling=false;
+let askPay=false, cart=[], payType="cash", saleBranch="", saleMsg=null, msq="", selling=false;
 
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -446,12 +448,27 @@ function supStats(name){
 }
 function supHist(e){let b=0;return [...e].sort((p,q)=>(p.date||"").localeCompare(q.date||"")||(p.created||0)-(q.created||0)).map(x=>{if(x.type==="pay")b-=+x.amount||0;else if(!x.paid)b+=+x.amount||0;return {...x,bal:Math.max(0,b)};}).reverse();}
 const supOwedTotal=()=>state.suppliers.reduce((a,x)=>a+supStats(x.name).owed,0);
+const P4=()=>({"Нақд":0,"Kaspi":0,"Kaspi Pay":0,"Халқ банк":0});
+const pk4=k=>{k=k||"Нақд";if(k==="Карта / Kaspi")k="Kaspi";return NONCASH.includes(k)?k:"Нақд";};
+function kassa2(br){const t=todayISO(),inn=P4(),out=P4();
+  state.sales.filter(r=>r.branch===br).forEach(r=>{const a=+r.amount||0;if(r.type==="in"&&r.date<t)inn[pk4(r.category)]+=a;else if(r.type==="out"&&r.date<=t)out[pk4(r.pay)]+=a;});
+  const bal=P4();for(const k in bal)bal[k]=inn[k]-out[k];const total=Object.values(bal).reduce((a,b)=>a+b,0);
+  const outs=state.sales.filter(r=>r.branch===br&&r.type==="out").sort(byDate).slice(0,6);
+  const backs=state.sales.filter(r=>r.branch===br&&r.type==="in"&&r.date<t&&(r.kind==="debtpay"||r.category==="Қарз қайтарилди")).sort(byDate).slice(0,10).map(r=>({date:r.date,amount:+r.amount||0,name:(r.note||"").replace(/^Қарз қайтарди: /,"")||"—",pay:r.kind==="debtpay"?pk4(r.category):"Нақд"}));
+  return {inn,out,bal,total,outs,backs};}
 function shiftCalc(br,date){
   const s=state.sales.filter(r=>r.branch===br&&r.date===date);
   const cashIn=sum(s.filter(r=>r.type==="in"&&!NONCASH.includes(r.category))), cardIn=sum(s.filter(r=>r.type==="in"&&NONCASH.includes(r.category))), out=sum(s.filter(r=>r.type==="out"));
   const bySeller={};s.filter(r=>r.type==="in"&&r.seller).forEach(r=>{bySeller[r.seller]=(bySeller[r.seller]||0)+(+r.amount||0);});
-  const byPay={};s.filter(r=>r.type==="in").forEach(r=>{const k=r.category||"Бошқа";byPay[k]=(byPay[k]||0)+(+r.amount||0);});
-  return {cashIn,cardIn,out,byPay,expected:cashIn+cardIn-out,bySeller};
+  const isDP=r=>r.kind==="debtpay"||r.category==="Қарз қайтарилди";
+  const PK=r=>{let k=r.category||"Нақд";if(k==="Карта / Kaspi")k="Kaspi";return NONCASH.includes(k)?k:"Нақд";};
+  const saleByPay={"Нақд":0,"Kaspi":0,"Kaspi Pay":0,"Халқ банк":0},backByPay={"Нақд":0,"Kaspi":0,"Kaspi Pay":0,"Халқ банк":0};
+  s.filter(r=>r.type==="in").forEach(r=>{(isDP(r)?backByPay:saleByPay)[PK(r)]+=+r.amount||0;});
+  const saleSum=Object.values(saleByPay).reduce((a,b)=>a+b,0),backSum=Object.values(backByPay).reduce((a,b)=>a+b,0);
+  const byPay={"Нақд":0,"Kaspi":0,"Kaspi Pay":0,"Халқ банк":0};s.filter(r=>r.type==="in").forEach(r=>{let k=r.category||"Бошқа";if(k==="Карта / Kaspi")k="Kaspi";if(!NONCASH.includes(k))k="Нақд";byPay[k]=(byPay[k]||0)+(+r.amount||0);});
+  const debtBack=s.filter(r=>r.type==="in"&&(r.kind==="debtpay"||r.category==="Қарз қайтарилди")).map(r=>({name:(r.note||"").replace(/^Қарз қайтарди: /,""),amount:+r.amount||0,pay:r.kind==="debtpay"?r.category:"Нақд"}));
+  let debtGiven=0;const givenList=[];state.debts.filter(d=>d.branch===br).forEach(d=>{const ad=(d.adds||[]);const base=(+d.amount||0)-sum(ad);let g=0;if(d.date===date)g+=base;ad.forEach(a=>{if(a.date===date)g+=+a.amount||0;});if(g>0){debtGiven+=g;givenList.push({name:d.name,amount:g});}});
+  return {cashIn,cardIn,out,byPay,expected:cashIn+cardIn,bySeller,debtBack,debtGiven,givenList,saleByPay,backByPay,saleSum,backSum};
 }
 const norm=s=>String(s||"").toLowerCase().replace(/ё/g,"е").replace(/[^a-zа-яўқғҳ0-9]+/gi," ").trim();
 function priceRows(){const out=[];state.pricelists.forEach(d=>(d.rows||[]).forEach(r=>out.push({sup:d.supplier,date:d.date,n:r.n,b:r.b||"",p:+r.p||0,m:r.m||"",e:r.e||"",doc:d.id,manual:!!d.manual})));return out;}
@@ -734,6 +751,7 @@ function homeView(){
     <div class="list">${ds.open.sort((a,b)=>left(b)-left(a)).slice(0,5).map(debtRow).join("")||`<div class="empty">Қарздор йўқ</div>`}</div></section>`;
 }
 
+function debtDelBtn(d){if(!(left(d)>0))return delBtn("debts",d.id);return confirmId===d.id?`<button class="x ok" data-pay="${d.id}">Ўчириш — пул кассага тушсин</button><button class="x" data-del="debts" data-id="${d.id}">Хато ёзилган — ўчир</button><button class="x" data-cancel>Йўқ</button>`:`<button class="x" data-ask="${d.id}">Ўчириш</button>`;}
 function delBtn(col,id){return confirmId===id?`<button class="x ok" data-del="${col}" data-id="${id}">Ўчирилсинми?</button><button class="x" data-cancel>Йўқ</button>`:`<button class="x" data-ask="${id}">Ўчириш</button>`;}
 
 /* --- sale --- */
@@ -759,12 +777,13 @@ function sellView(){
     ${disc?`<div class="sum"><span>Жами: <b>${money(total)}</b></span><span>Чегирма: <b class="neg">−${money(disc)}</b></span></div>`:""}
     <div class="total"><span>Тўланади</span><b>${money(pay)}</b></div>
     ${branch==="all"?`<div class="f"><label for="saleBr">Қайси филиалда сотилди</label><select id="saleBr"><option value="">— танланг —</option>${BRANCHES.map(b=>`<option ${b===saleBranch?"selected":""}>${b}</option>`).join("")}</select></div>`:""}
-    <div class="seg" role="group" aria-label="Тўлов тури" style="margin:0">${[["cash","Нақд"],["halyk","Халқ банк"],["kaspi","Kaspi"],["kaspipay","Kaspi Pay"],["debt","Қарзга"]].map(([v,l])=>`<button data-pt="${v}" aria-pressed="${payType===v}">${l}</button>`).join("")}</div>
+    ${payType==="debt"?`<div class="sum"><span><b>Қарзга</b> сотилмоқда</span><button class="x" data-pt="cash">Бекор</button></div>`:""}
     ${payType!=="debt"?`<div class="f"><label for="paidAmt">Қанча пул келди (₸) — ўзгартириш мумкин</label><input id="paidAmt" type="number" inputmode="numeric" min="0" autocomplete="off" value="${pay}" placeholder="${pay}"></div>`:""}
     ${state.staff.length?`<div class="f"><label for="seller">Ким сотди</label><select id="seller"><option value="">— танланг —</option>${state.staff.filter(x=>!br||x.branch===br).map(x=>`<option ${x.name===seller?"selected":""}>${esc(x.name)}</option>`).join("")}</select></div>`:""}
     ${payType==="debt"?`<div class="frow"><div class="f"><label for="dName">Ким олди</label><input id="dName" autocomplete="off"></div><div class="f"><label for="dPhone">Телефон</label><input autocomplete="off" id="dPhone" type="tel"></div></div>${pickChips("dName",state.customers.map(c=>c.name))}`:""}
     <div class="err" id="sellErr" hidden></div>
-    <button class="add big" data-sell ${selling?"disabled":""}>${payType==="debt"?"Қарзга ёзиш":"Сотилди"} — ${money(pay)}</button>`:""}
+    ${askPay&&payType!=="debt"?`<div class="lbl">Пул қандай келди? Танланг:</div><div class="paygrid">${[["cash","Нақд"],["kaspi","Kaspi"],["kaspipay","Kaspi Pay"],["halyk","Халқ банк"]].map(([v,l])=>`<button class="btn2 pri" data-paynow="${v}" ${selling?"disabled":""}>${l}</button>`).join("")}<button class="btn2" data-pt="debt">Қарзга</button><button class="btn2" data-askno>Бекор</button></div>`
+    :`<button class="add big" ${payType==="debt"?"data-sell":"data-ask2"} ${selling?"disabled":""}>${payType==="debt"?"Қарзга ёзиш":"Сотилди"} — ${money(pay)}</button>`}`:""}
   </section>`;
 }
 function discOf(total){const v=+discVal||0;if(v<=0)return 0;return Math.min(total,discMode==="pct"?Math.round(total*Math.min(v,100)/100):Math.round(v));}
@@ -873,6 +892,15 @@ function saleRow(r){
   return `<div class="row"><div><div class="t">${esc(r.category||"")}${r.note?" · "+esc(r.note):""}</div><div class="m">${nice(r.date)} ${bchip(r.branch)}</div></div>
   <div class="acts"><span class="amt ${r.type==="in"?"in":"out"}">${r.type==="in"?"+":"−"}${money(r.amount)}</span>${editBtn("sales",r.id)}${delBtn("sales",r.id)}</div></div>`;
 }
+function kassa2View(){return `  <section class="panel">
+    <div class="ph"><h2>2-касса</h2><span class="lbl">олдинги кунлар пули · чиқим ва фирмага тўлов шундан</span></div>
+    ${BRANCHES.filter(b=>branch==="all"||b===branch).map(b=>{const k=kassa2(b);return `<div class="shift">
+      <div class="ph">${bchip(b)}<span>Жами: <b class="${k.total<0?"neg":""}">${money(k.total)}</b></span></div>
+      <div class="sum">${Object.entries(k.bal).map(([n,v])=>`<span>${esc(n)}: <b class="${v<0?"neg":""}">${money(v)}</b></span>`).join("")}</div>
+      ${k.backs.length?`<div class="lbl" style="margin-top:6px">Қарзи ўчирилганлар</div><div class="list">${k.backs.map(r=>`<div class="row"><div><div class="t">${esc(r.name)}</div><div class="m">қарз ўчирилди · ${nice(r.date)} · ${esc(r.pay)}</div></div><span class="amt in">+${money(r.amount)}</span></div>`).join("")}</div>`:""}
+      ${k.outs.length?`<div class="m" style="font-size:12.5px">Охирги чиқимлар: ${k.outs.map(r=>nice(r.date)+" — "+num(r.amount)+" ("+esc(pk4(r.pay))+(r.note?", "+esc(r.note):(r.category?", "+esc(r.category):""))+")").join("; ")}</div>`:""}
+      <div class="acts" style="justify-content:flex-start"><button class="btn2" data-k2out="${b}">− Чиқим (2-кассадан)</button></div></div>`;}).join("")}
+    <div class="m" style="font-size:12px;color:var(--muted)">Бугунги савдо эртага ўзи 2-кассага ўтади. Чиқим ва фирмага тўлов фақат 2-кассадан олинади.</div></section>`;}
 function moneyView(){
   const c=cashFor(monthSel);
   const months=[...new Set([todayISO().slice(0,7),...state.sales.map(r=>(r.date||"").slice(0,7))])].filter(Boolean).sort().reverse();
@@ -887,9 +915,15 @@ function moneyView(){
     <div class="ph"><h2>Бугунги касса</h2><span class="lbl">${nice(t)}</span></div>
     ${BRANCHES.filter(b=>branch==="all"||b===branch).map(b=>{const x=shiftCalc(b,t);const done=state.shifts.find(z=>z.branch===b&&z.date===t);return `<div class="shift">
       <div class="ph">${bchip(b)}${done?`<span class="m">ёпилди: ${esc(done.by||"")} ${diffChip(done.diff)}</span>`:""}</div>
-      <div class="sum">${Object.entries(x.byPay).filter(([k,v])=>v).map(([k,v])=>`<span>${esc(k)}: <b>${money(v)}</b></span>`).join("")}<span>Жами кирим: <b>${money(x.cashIn+x.cardIn)}</b></span><span>Чиқим: <b>${money(x.out)}</b></span></div>
+      <div class="lbl" style="margin-top:4px">1-касса · бугунги савдо</div>
+      <div class="sum">${Object.entries(x.saleByPay).map(([k,v])=>`<span>${esc(k)}: <b>${money(v)}</b></span>`).join("")}<span>Жами савдо: <b>${money(x.saleSum)}</b></span></div>
+      <div class="lbl">Қарзи ўчирилганлар <small style="text-transform:none;font-weight:400">(савдога қўшилмайди)</small></div>
+      <div class="sum"><span>Жами: <b class="pos">${money(x.backSum)}</b></span>${Object.entries(x.backByPay).filter(([k,v])=>v).map(([k,v])=>`<span>${esc(k)}: <b>${money(v)}</b></span>`).join("")}</div>
+      ${x.debtBack.length?`<div class="list">${x.debtBack.map(g=>`<div class="row"><div><div class="t">${esc(g.name||"—")}</div><div class="m">қарз ўчирилди · ${esc(g.pay)}</div></div><span class="amt in">+${money(g.amount)}</span></div>`).join("")}</div>`:""}
+      <div class="sum"><span>Бугун кассага жами кирди: <b>${money(x.saleSum+x.backSum)}</b></span></div>
       ${Object.keys(x.bySeller).length?`<div class="sum">${Object.entries(x.bySeller).map(([k,v])=>`<span>${esc(k)}: <b>${money(v)}</b></span>`).join("")}</div>`:""}
-      <div class="ph"><span>Кассада бўлиши керак: <b>${money(x.expected)}</b></span><button class="btn2 pri" data-closeshift="${b}">${done?"Қайта ёпиш":"Кассани ёпиш"}</button></div></div>`;}).join("")}
+      <div class="ph"><span>1-кассада бўлиши керак: <b>${money(x.expected)}</b></span><button class="btn2 pri" data-closeshift="${b}">${done?"Қайта ёпиш":"Кассани ёпиш"}</button></div></div>`;}).join("")}
+
     ${shifts.length?`<div class="lbl">Охирги ёпилишлар</div><div class="list">${shifts.map(z=>`<div class="row"><div><div class="t">${nice(z.date)} · ${esc(z.by||"—")}</div><div class="m">Керак: ${money(z.expected)} · Санаб топширилди: ${money(z.counted)} ${bchip(z.branch)}</div>${z.note?`<div class="m">${esc(z.note)}</div>`:""}</div><div class="acts" style="flex-direction:column;align-items:flex-end">${diffChip(z.diff)}${delBtn("shifts",z.id)}</div></div>`).join("")}</div>`:""}
   </section>
   <section class="panel">
@@ -939,7 +973,7 @@ function debtRow(d){
     <div class="m">${d.phone?esc(d.phone)+" · ":""}${bchip(d.branch)}</div>
     ${full||l>0?`<div class="dacts">${l>0?`<button class="pay" data-pay="${d.id}">Тўлов</button>`:""}
       ${full&&l>0&&waNum(d.phone)?`<a class="pay" href="https://wa.me/${waNum(d.phone)}?text=${encodeURIComponent(remindText(d))}" target="_blank" rel="noopener">WhatsApp эслатма</a>`:""}
-      ${full?`<button class="btn2 pri" data-ddebt="${d.id}">+ Қарз қўшиш</button>`+editBtn("debts",d.id)+delBtn("debts",d.id):""}</div>`:""}
+      ${full?`<button class="btn2 pri" data-ddebt="${d.id}">+ Қарз қўшиш</button>`+editBtn("debts",d.id)+debtDelBtn(d):""}</div>`:""}
   </div>`;
 }
 function debtsView(){
@@ -1099,7 +1133,7 @@ function reportView(){
     <div class="list">${slow.slice(0,30).map(({m,st,val})=>`<div class="row"><div><div class="t">${esc(m.name)}</div><div class="m">${st} та бор ${expChip(nearestExp(m))}</div></div><span class="amt">${val?money(val):"—"}</span></div>`).join("")||`<div class="empty">Туриб қолган дори йўқ</div>`}</div>
     ${slow.length?`<div class="sum"><span>Жами туриб қолган товар қиймати: <b>${money(sum(slow,"val"))}</b></span></div>`:""}</section>`;
 }
-function moreSeg(){return `<div class="seg moreseg" role="group" aria-label="Бўлим" style="margin:0">${[["meds","Дорилар"],["money","Касса"],...(boss()?[["prices","Нархлар"]]:[]),["suppliers","Фирмалар"],["report","Ҳисобот"],["orders","Буюртмалар"],["customers","Мижозлар"],...(boss()?[["staff","Ходимлар"]]:[])].map(([v,l])=>`<button data-v="${v}" aria-pressed="${view===v}">${l}</button>`).join("")}</div>`;}
+function moreSeg(){return `<div class="seg moreseg" role="group" aria-label="Бўлим" style="margin:0">${[["meds","Дорилар"],["money","1-касса"],["kassa2","2-касса"],...(boss()?[["prices","Нархлар"]]:[]),["suppliers","Фирмалар"],["report","Ҳисобот"],["orders","Буюртмалар"],["customers","Мижозлар"],...(boss()?[["staff","Ходимлар"]]:[])].map(([v,l])=>`<button data-v="${v}" aria-pressed="${view===v}">${l}</button>`).join("")}</div>`;}
 
 let remindAuto=false,expAuto=false,expPending=false;
 /* Телефонда клавиатура ўзи чиқмасин: фақат одам катакни босганда чиқади */
@@ -1119,7 +1153,7 @@ function render(){
   {const mb=myBranch();if(mb)branch=mb;document.querySelectorAll("#branchSeg button").forEach(b=>{b.hidden=!!mb&&b.dataset.b!==mb;b.setAttribute("aria-pressed",b.dataset.b===branch?"true":"false");});}
   showLock();
   if(view==="staff"&&!boss())view="home";
-  const views={zakaz:orderBlock,prices:pricesView,suppliers:suppliersView,report:reportView,home:homeView,sell:sellView,meds:medsView,money:moneyView,debts:debtsView,orders:ordersView,customers:customersView,staff:staffView};
+  const views={kassa2:kassa2View,zakaz:orderBlock,prices:pricesView,suppliers:suppliersView,report:reportView,home:homeView,sell:sellView,meds:medsView,money:moneyView,debts:debtsView,orders:ordersView,customers:customersView,staff:staffView};
   const a=document.activeElement,fid=a&&["search","msearch","pq","disc"].includes(a.id)?a.id:null,pos=fid?a.selectionStart:0;
   const html=remBanner()+expBanner()+(MORE.includes(view)?moreSeg():"")+views[view]();
   if(fid&&document.getElementById(fid)===a&&$("#main").contains(a)){const tmp=document.createElement("div");tmp.innerHTML=html;morphKids($("#main"),tmp,fid);}
@@ -1149,7 +1183,7 @@ function morphNode(f,t,keep){
   morphKids(f,t,keep);}
 /* ---------- add sheet ---------- */
 let sheetKind="in";
-const KIND_FOR_VIEW={zakaz:"recv",suppliers:"supplier",report:"in",home:"in",sell:"recv",meds:"recv",money:"in",debts:"debt",orders:"order",customers:"customer",staff:"staff"};
+const KIND_FOR_VIEW={kassa2:"out",zakaz:"recv",suppliers:"supplier",report:"in",home:"in",sell:"recv",meds:"recv",money:"in",debts:"debt",orders:"order",customers:"customer",staff:"staff"};
 const opt=(arr,sel)=>arr.map(x=>`<option ${x===sel?"selected":""}>${esc(x)}</option>`).join("");
 function branchSel(){return `<div class="f"><label for="f_branch">Филиал</label><select id="f_branch">${opt(BRANCHES,branch==="all"?BRANCHES[0]:branch)}</select></div>`;}
 const dateF=(id="f_date",l="Сана")=>`<div class="f"><label for="${id}">${l}</label><input autocomplete="off" id="${id}" type="date" value="${todayISO()}"></div>`;
@@ -1244,7 +1278,7 @@ function formFields(k){
   if(k==="spay"){const x=state.suppliers.find(z=>z.id===payFor);if(!x)return `<div class="empty">Топилмади</div>`;const st=supStats(x.name);
     return `<div class="sum"><span><b>${esc(x.name)}</b> — қарзимиз: <b class="neg">${money(st.owed)}</b></span></div>
     <div class="frow"><div class="f"><label for="f_amount">Қанча тўладик (₸)</label><input autocomplete="off" id="f_amount" type="number" inputmode="numeric" min="0" value="${st.owed}"></div>${dateF()}</div>
-    ${branchSel()}${editRec?"":`<label class="check"><input autocomplete="off" type="checkbox" id="f_tocash" checked> Кассадан берилди — чиқим қилиб ёзилсин</label>`}`;}
+    ${branchSel()}${editRec?"":`<div class="f"><label for="f_pay">2-кассанинг қайси пулидан тўладик</label><select id="f_pay">${Object.values(PAY_NAMES).map(v=>`<option>${v}</option>`).join("")}</select></div><div class="m" style="font-size:12.5px">Пул 2-кассадан ўзи айрилади.</div>`}`;}
   if(k==="remind"){const r=dueRem();if(!r.length)return `<div class="empty">Бугун эслатиш керак бўлган қарздор қолмади ✓</div>`;
     return `<div class="m">Қайтариш кунига 3 кун ёки ундан кам қолган ёхуд муддати ўтган қарздорлар. Тугмани боссангиз, WhatsApp тайёр матн билан очилади — «Юбориш»ни босинг.</div>
     <div class="list">${r.map(d=>`<div class="dcard"><div class="dtop"><div class="dname">${esc(d.name)}</div><div class="damt neg">${money(left(d))}</div></div>
@@ -1264,6 +1298,7 @@ function formFields(k){
     <div class="f"><label for="f_note">Изоҳ</label><input autocomplete="off" id="f_note" placeholder="масалан: камомад сабаби"></div>`;}
   if(k==="med"&&false)return"";
   if(k==="in"||k==="out")return `<div class="frow"><div class="f"><label for="f_amount">Сумма (₸)</label><input autocomplete="off" id="f_amount" type="number" inputmode="numeric" min="0" placeholder="0"></div>${dateF()}</div>
+    ${k==="out"?`<div class="f"><label for="f_pay">2-кассанинг қайси пулидан</label><select id="f_pay">${Object.values(PAY_NAMES).map(v=>`<option>${v}</option>`).join("")}</select></div>`:""}
     <div class="frow"><div class="f"><label for="f_cat">${k==="in"?"Пул қаердан":"Нимага сарфланди"}</label><select id="f_cat">${opt(k==="in"?INCOME_CATS:EXPENSE_CATS)}</select></div>${branchSel()}</div>
     <div class="f"><label for="f_note">Изоҳ</label><input autocomplete="off" id="f_note" placeholder="${k==="in"?"масалан: кунлик касса":"масалан: фирмадан дори"}"></div>`;
   if(k==="debt")return `<div class="frow"><div class="f"><label for="f_name">Ким олди</label><input id="f_name" autocomplete="off"></div><div class="f"><label for="f_phone">Телефон</label><input autocomplete="off" id="f_phone" type="tel"></div></div>
@@ -1278,7 +1313,8 @@ function formFields(k){
   if(k==="pay"){const d=state.debts.find(x=>x.id===payFor);if(!d)return `<div class="empty">Қарз топилмади</div>`;
     return `<div class="sum"><span><b>${esc(d.name)}</b> — қолган қарз: <b class="neg">${money(left(d))}</b></span></div>
     <div class="frow"><div class="f"><label for="f_amount">Қанча тўлади (₸)</label><input autocomplete="off" id="f_amount" type="number" inputmode="numeric" min="0" value="${left(d)}"></div>${dateF()}</div>
-    <label class="check"><input autocomplete="off" type="checkbox" id="f_tocash" checked> Кассага кирим қилиб ёзилсин</label>`;}
+    <div class="f"><label for="f_ptype">Қандай тўлади</label><select id="f_ptype">${Object.values(PAY_NAMES).map(v=>`<option>${v}</option>`).join("")}</select></div>
+    <div class="m" style="font-size:12.5px">Тўлов ${bchip(d.branch)} кассасига «${esc(d.name)}» номи билан ўзи тушади. Қарз тўлиқ тўланса, қарз дафтаридан чиқади.</div>`;}
   if(k==="order")return `<div class="frow"><div class="f"><label for="f_customer">Мижоз исми</label><input autocomplete="off" id="f_customer"></div><div class="f"><label for="f_phone">Телефон</label><input autocomplete="off" id="f_phone" type="tel"></div></div>
     <div class="f"><label for="f_items">Дорилар / буюртма</label><textarea id="f_items" rows="2"></textarea></div>
     <div class="frow"><div class="f"><label for="f_total">Сумма (₸)</label><input autocomplete="off" id="f_total" type="number" inputmode="numeric" min="0"></div><div class="f"><label for="f_channel">Қаердан</label><select id="f_channel">${opt(CHANNELS)}</select></div></div>
@@ -1688,7 +1724,7 @@ async function submitSheet(){
     const date=val("f_date")||todayISO(),br=val("f_branch");
     if(editRec){ok=await updRec("supplies",editRec.id,{amount:a,date,branch:br});}
     else{ok=await addRec("supplies",{type:"pay",supplier:x.name,amount:a,date,branch:br});
-    if(ok&&document.getElementById("f_tocash").checked)await addRec("sales",{type:"out",amount:a,date,category:"Дори харид",branch:br,note:"Таъминотчига тўлов: "+x.name});}}
+    if(ok)await addRec("sales",{type:"out",amount:a,date,category:"Дори харид",pay:val("f_pay")||"Нақд",branch:br,note:"Таъминотчига тўлов: "+x.name});}}
   else if(k==="sadj"){const x=state.suppliers.find(z=>z.id===payFor);if(!x)return fail("Топилмади");const raw=val("f_amount");if(raw===""||+raw<0)return fail("Тўғри қарз суммасини ёзинг");
     const st=supStats(x.name),d=Math.round(+raw-st.owed),date=val("f_date")||todayISO(),note="қарз қўлда тўғриланди"+(val("f_note")?" · "+val("f_note"):"");
     if(d===0){toast("Ўзгариш йўқ");return true;}
@@ -1702,7 +1738,8 @@ async function submitSheet(){
     ok=await addRec("shifts",{date:todayISO(),branch:closeBr,by:val("f_by"),counted,expected:x.expected,diff:counted-x.expected,cashIn:x.cashIn,cardIn:x.cardIn,out:x.out,note:val("f_note")});
     if(ok){const d=counted-x.expected;setTimeout(()=>toast(d===0?"Касса тўғри ёпилди":d<0?"Камомад: "+money(-d):"Ортиқча: "+money(d)),400);}}
   else if(k==="in"||k==="out"){const a=+val("f_amount");if(!(a>0))return fail("Суммани киритинг");
-    ok=await saveRec("sales",{type:k,amount:a,date:val("f_date")||todayISO(),category:val("f_cat"),branch:val("f_branch"),note:val("f_note")});}
+    const rec={type:k,amount:a,date:val("f_date")||todayISO(),category:val("f_cat"),branch:val("f_branch"),note:val("f_note")};if(k==="out")rec.pay=val("f_pay")||"Нақд";
+    ok=await saveRec("sales",rec);}
   else if(k==="debt"){const a=+val("f_amount");if(!val("f_name"))return fail("Ким олганини ёзинг");if(!(a>0))return fail("Қарз суммасини киритинг");
     const dd={name:val("f_name"),phone:val("f_phone"),items:val("f_items"),amount:a,date:val("f_date")||todayISO(),due:val("f_due"),branch:val("f_branch")};
     if(editRec){const r=state.debts.find(x=>x.id===editRec.id);if(r&&a<paid(r))return fail("Сумма тўланган пулдан ("+money(paid(r))+") кам бўлмасин");}else dd.payments=[];
@@ -1716,7 +1753,8 @@ async function submitSheet(){
     if(!d)return fail("Қарз топилмади");if(!(a>0))return fail("Суммани киритинг");if(a>left(d))return fail("Тўлов қолган қарздан ("+money(left(d))+") кўп бўлмасин");
     const date=val("f_date")||todayISO();
     ok=await updRec("debts",d.id,{payments:[...(d.payments||[]),{date,amount:a}]});
-    if(ok&&document.getElementById("f_tocash").checked)await addRec("sales",{type:"in",amount:a,date,category:"Қарз қайтарилди",branch:d.branch,note:d.name});}
+    if(ok)await addRec("sales",{type:"in",amount:a,date,category:val("f_ptype")||"Нақд",kind:"debtpay",debtId:d.id,branch:d.branch,note:"Қарз қайтарди: "+d.name,seller:seller||""});
+    if(ok)setTimeout(()=>toast(d.name+": "+money(a)+" кассага тушди"+(a>=left(d)?", қарз ёпилди":"")),300);}
   else if(k==="order"){if(!val("f_customer")&&!val("f_phone"))return fail("Мижоз исми ёки телефонини киритинг");
     const od={customer:val("f_customer"),phone:val("f_phone"),items:val("f_items"),total:+val("f_total")||0,channel:val("f_channel"),branch:val("f_branch"),date:val("f_date")||todayISO()};if(!editRec)od.status="Янги";
     ok=await saveRec("orders",od);}
@@ -1786,7 +1824,8 @@ document.addEventListener("click",e=>{
   if(d.medf){medFilter=d.medf;if(view!=="meds"){setTab("meds");}return render();}
   if(t.hasAttribute("data-closeday")){daySel=null;return render();}
   if(d.kind){sheetKind=d.kind;document.querySelectorAll(".kinds button").forEach(b=>b.setAttribute("aria-pressed",b===t));$("#fields").innerHTML=formFields(sheetKind);$("#ferr").hidden=true;const f=$("#fields input");if(f)f.focus();return;}
-  if(d.pay){payFor=d.pay;return openSheet("pay");}
+  if(d.k2out){editRec=null;openSheet("out");setTimeout(()=>{const b=document.getElementById("f_branch");if(b)b.value=d.k2out;},30);return;}
+  if(d.pay){payFor=d.pay;confirmId=null;return openSheet("pay");}
   if(d.spay){payFor=d.spay;return openSheet("spay");}
   if(d.supopen){supOpen=supOpen===d.supopen?null:d.supopen;return render();}
   if(d.closeshift){closeBr=d.closeshift;return openSheet("close");}
@@ -1826,8 +1865,11 @@ document.addEventListener("click",e=>{
   if(d.inc){const c=cart.find(x=>x.barcode===d.inc);if(c)c.qty++;return render();}
   if(d.dec){const c=cart.find(x=>x.barcode===d.dec);if(c){c.qty--;if(c.qty<=0)cart=cart.filter(x=>x!==c);}return render();}
   if(t.hasAttribute("data-clearcart")){cart=[];return render();}
-  if(d.pt){payType=d.pt;return render();}
+  if(d.pt){payType=d.pt;askPay=false;return render();}
   if(t.hasAttribute("data-sell"))return completeSale();
+  if(t.hasAttribute("data-ask2")){askPay=true;return render();}
+  if(t.hasAttribute("data-askno")){askPay=false;return render();}
+  if(d.paynow){payType=d.paynow;askPay=false;return completeSale();}
   if(t.hasAttribute("data-close"))return closeSheet();
   if(d.ask){confirmId=d.ask;if(sheetKind==="pin"&&$("#sheetBg")){$("#fields").innerHTML=formFields("pin");return;}return render();}
   if(t.hasAttribute("data-cancel")){confirmId=null;if(sheetKind==="pin"&&$("#sheetBg")){$("#fields").innerHTML=formFields("pin");return;}return render();}
